@@ -1,33 +1,22 @@
 # Python
 __pycache__/
-*.pyc
-*.pyo
-.venv/
-venv/
+*.py[cod]
 *.egg-info/
+.env
 
 # dbt
-dbt/target/
-dbt/dbt_packages/
-dbt/logs/
-
-# AWS
-.aws/
-cdk.out/
+**/dbt_packages/
+**/target/
+**/logs/
+**/.user.yml
 
 # IDE
-.vscode/
-.idea/
+.vscode/settings.json
 
 # OS
 .DS_Store
 Thumbs.db
 
-# Temp files
+# Temp
+*.gz
 *.tmp
-output.json
-
-# Local scripts (not for deployment)
-run_generator.py
-test_s3_select.py
-setup_athena.py
