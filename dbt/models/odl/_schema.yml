@@ -1,0 +1,53 @@
+version: 2
+
+models:
+  - name: dim_customers
+    description: "Unified customer dimension — star schema (odl)"
+    columns:
+      - name: customer_sk
+        description: "Surrogate key (MD5 of customer_id + brand)"
+        tests: [unique, not_null]
+      - name: customer_nk
+        description: "Natural key from source"
+        tests: [not_null]
+      - name: brand
+        tests:
+          - accepted_values:
+              values: ['Boohoo','Boohoo Man','PrettyLittleThing','NastyGal','Karen Millen','Coast','Debenhams']
+
+  - name: dim_products
+    description: "Unified product dimension (odl)"
+    columns:
+      - name: product_sk
+        tests: [unique, not_null]
+      - name: current_price
+        tests:
+          - dbt_utils.accepted_range:
+              min_value: 0
+
+  - name: dim_time
+    description: "Conformed date dimension (odl)"
+    columns:
+      - name: date_day
+        tests: [unique, not_null]
+
+  - name: fact_orders
+    description: "Order fact table with FK to dim_customers via customer_sk (odl)"
+    columns:
+      - name: order_sk
+        tests: [unique, not_null]
+      - name: customer_sk
+        tests:
+          - relationships:
+              to: ref('dim_customers')
+              field: customer_sk
+      - name: total_amount
+        tests:
+          - dbt_utils.accepted_range:
+              min_value: 0
+
+  - name: map_brand
+    description: "Brand reference mapping (odl)"
+    columns:
+      - name: brand
+        tests: [unique, not_null]

@@ -1,0 +1,2 @@
+# No external dependencies required — uses only boto3 (included in Lambda runtime)
+# and the AWS SDK Pandas Lambda layer for pandas/pyarrow
