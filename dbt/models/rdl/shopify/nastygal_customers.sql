@@ -10,13 +10,13 @@ WITH history AS (
 ),
 dedup AS (
     SELECT *, ROW_NUMBER() OVER (
-        PARTITION BY id ORDER BY ingest_date DESC, ingest_ts DESC
+        PARTITION BY customer_id ORDER BY ingest_date DESC, ingest_ts DESC
     ) AS rnk
     FROM history
 )
 SELECT customer_id, email, first_name, last_name, phone, city, country,
        customer_segment, signup_date::DATE AS registration_date, gender,
-       is_subscribed::BOOLEAN AS is_marketing_opted_in,
+       CASE WHEN is_subscribed IN ('true', 'True', '1', 'yes') THEN TRUE ELSE FALSE END AS is_marketing_opted_in,
        'NastyGal' AS brand, 'shopify' AS source_system,
        ingest_date, ingest_ts
 FROM dedup WHERE rnk = 1

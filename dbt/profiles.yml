@@ -3,10 +3,10 @@ boohoo_dwh:
   outputs:
     dev:
       type: redshift
-      host: "{{ env_var('REDSHIFT_HOST') }}"
+      host: boohoo-workgroup.332779204498.eu-west-2.redshift-serverless.amazonaws.com
       port: 5439
-      user: "{{ env_var('REDSHIFT_USER', 'admin') }}"
-      password: "{{ env_var('REDSHIFT_PASSWORD') }}"
+      user: admin
+      password: "B00h00Dwh!2026x"
       dbname: boohoo_dwh
-      schema: raw
+      schema: public
       threads: 4

@@ -3,9 +3,8 @@
 -- Conformed date dimension
 ------------------------------------------------------------------------------------------------------------------------
 WITH date_spine AS (
-    SELECT (DATE '2024-01-01' + ROW_NUMBER() OVER () - 1)::DATE AS date_day
-    FROM stv_blocklist  -- Redshift system table to generate rows
-    LIMIT 1096  -- ~3 years
+    SELECT (DATE '2024-01-01' + n)::DATE AS date_day
+    FROM (SELECT ROW_NUMBER() OVER () - 1 AS n FROM pg_catalog.pg_class LIMIT 1096) seq
 )
 SELECT
     date_day                                    AS date_day,

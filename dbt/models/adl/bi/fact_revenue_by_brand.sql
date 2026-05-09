@@ -1,6 +1,6 @@
 ------------------------------------------------------------------------------------------------------------------------
 -- bi.fact_revenue_by_brand
--- Pre-aggregated revenue metrics by brand — feeds Looker Studio
+-- Pre-aggregated revenue metrics by brand - feeds Looker Studio
 ------------------------------------------------------------------------------------------------------------------------
 SELECT
     o.ingest_date,

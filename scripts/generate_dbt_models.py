@@ -116,7 +116,7 @@ WITH history AS (
 ),
 dedup AS (
     SELECT *, ROW_NUMBER() OVER (
-        PARTITION BY {cfg['pk']} ORDER BY ingest_date DESC, ingest_ts DESC
+        PARTITION BY customer_id ORDER BY ingest_date DESC, ingest_ts DESC
     ) AS rnk
     FROM history
 )
@@ -141,7 +141,7 @@ WITH history AS (
 ),
 dedup AS (
     SELECT *, ROW_NUMBER() OVER (
-        PARTITION BY {cfg['pk']} ORDER BY ingest_date DESC, ingest_ts DESC
+        PARTITION BY product_id ORDER BY ingest_date DESC, ingest_ts DESC
     ) AS rnk
     FROM history
 )
@@ -166,7 +166,7 @@ WITH history AS (
 ),
 dedup AS (
     SELECT *, ROW_NUMBER() OVER (
-        PARTITION BY {cfg['pk']} ORDER BY ingest_date DESC, ingest_ts DESC
+        PARTITION BY order_id ORDER BY ingest_date DESC, ingest_ts DESC
     ) AS rnk
     FROM history
 )
@@ -280,9 +280,8 @@ dim_time = """------------------------------------------------------------------
 -- Conformed date dimension
 ------------------------------------------------------------------------------------------------------------------------
 WITH date_spine AS (
-    SELECT (DATE '2024-01-01' + ROW_NUMBER() OVER () - 1)::DATE AS date_day
-    FROM stv_blocklist  -- Redshift system table to generate rows
-    LIMIT 1096  -- ~3 years
+    SELECT (DATE '2024-01-01' + n)::DATE AS date_day
+    FROM (SELECT ROW_NUMBER() OVER () - 1 AS n FROM pg_catalog.pg_class LIMIT 1096) seq
 )
 SELECT
     date_day                                    AS date_day,
@@ -359,7 +358,7 @@ print("\nADL/BI models:")
 
 fact_revenue_by_brand = """------------------------------------------------------------------------------------------------------------------------
 -- bi.fact_revenue_by_brand
--- Pre-aggregated revenue metrics by brand — feeds Looker Studio
+-- Pre-aggregated revenue metrics by brand - feeds Looker Studio
 ------------------------------------------------------------------------------------------------------------------------
 SELECT
     o.ingest_date,

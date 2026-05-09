@@ -11,7 +11,7 @@ WITH history AS (
 ),
 dedup AS (
     SELECT *, ROW_NUMBER() OVER (
-        PARTITION BY sku ORDER BY ingest_date DESC, ingest_ts DESC
+        PARTITION BY product_id ORDER BY ingest_date DESC, ingest_ts DESC
     ) AS rnk
     FROM history
 )

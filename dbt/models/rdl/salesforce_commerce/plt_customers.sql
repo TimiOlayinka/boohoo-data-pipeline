@@ -10,7 +10,7 @@ WITH history AS (
 ),
 dedup AS (
     SELECT *, ROW_NUMBER() OVER (
-        PARTITION BY customer_no ORDER BY ingest_date DESC, ingest_ts DESC
+        PARTITION BY customer_id ORDER BY ingest_date DESC, ingest_ts DESC
     ) AS rnk
     FROM history
 )
