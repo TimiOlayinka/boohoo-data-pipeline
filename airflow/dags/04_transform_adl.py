@@ -21,19 +21,11 @@ with DAG(
     dag_id="04_transform_adl",
     default_args=default_args,
     description="Analytics Data Layer: Pre-aggregated tables for Looker Studio dashboards",
-    schedule_interval="@daily",
+    schedule_interval="50 1 * * *",
     start_date=datetime(2026, 5, 1),
     catchup=False,
     tags=["transform", "dbt", "adl", "bi"],
 ) as dag:
-
-    wait_for_odl = ExternalTaskSensor(
-        task_id="wait_for_odl",
-        external_dag_id="03_transform_odl",
-        external_task_id=None,
-        timeout=600,
-        poke_interval=30,
-    )
 
     dbt_run_adl = BashOperator(
         task_id="dbt_run_adl",
@@ -45,4 +37,4 @@ with DAG(
         bash_command=f"cd {DBT_DIR} && dbt test --select tag:adl --profiles-dir .",
     )
 
-    wait_for_odl >> dbt_run_adl >> dbt_test_adl
+    dbt_run_adl >> dbt_test_adl

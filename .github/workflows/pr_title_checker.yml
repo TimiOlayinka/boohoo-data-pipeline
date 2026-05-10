@@ -8,12 +8,13 @@ jobs:
   check-title:
     runs-on: ubuntu-latest
     steps:
-      - name: Check PR Title format (DATA-X_summary)
+      - name: Check PR Title format (DATA-X/description_with_underscores)
         env:
           TITLE: ${{ github.event.pull_request.title }}
         run: |
-          if [[ ! "$TITLE" =~ ^DATA-[0-9]+_.*$ ]]; then
-            echo "❌ Error: Pull Request title must follow the format 'DATA-<number>_<summary>' (e.g., DATA-6_sql_formatting)"
+          if [[ ! "$TITLE" =~ ^DATA-[0-9]+/[A-Za-z0-9_]+$ ]]; then
+            echo "❌ Error: Pull Request title must strictly follow the format 'DATA-<number>/<description_with_underscores>'"
+            echo "   Example: 'DATA-10/cron_based_orchestration'"
             exit 1
           fi
           echo "✅ PR Title matches the required format."
