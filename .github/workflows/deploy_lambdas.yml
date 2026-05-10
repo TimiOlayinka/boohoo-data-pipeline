@@ -48,15 +48,44 @@ jobs:
         run: terraform apply -auto-approve
 
       - name: Sync Airflow DAGs to EC2 via SSM
+        continue-on-error: true
         run: |
-          INSTANCE_ID=$(aws ec2 describe-instances --filters "Name=tag:Name,Values=boohoo-airflow" "Name=instance-state-name,Values=running" --query "Reservations[0].Instances[0].InstanceId" --output text)
-          if [ "$INSTANCE_ID" != "None" ]; then
-            echo "Syncing code to instance: $INSTANCE_ID"
-            aws ssm send-command \
-              --instance-ids "$INSTANCE_ID" \
-              --document-name "AWS-RunShellScript" \
-              --parameters 'commands=["sudo /usr/local/bin/sync-dags.sh"]' \
-              --comment "Sync latest DAGs from GitHub to Airflow EC2"
-          else
-            echo "Instance is not running, skipping sync."
+          INSTANCE_ID=$(aws ec2 describe-instances \
+            --filters "Name=tag:Name,Values=boohoo-airflow" "Name=instance-state-name,Values=running" \
+            --query "Reservations[0].Instances[0].InstanceId" --output text)
+
+          if [ "$INSTANCE_ID" = "None" ] || [ -z "$INSTANCE_ID" ]; then
+            echo "⏸️ Airflow instance is not running — skipping DAG sync."
+            echo "   DAGs will sync automatically on next boot via systemd."
+            exit 0
           fi
+
+          echo "Found running instance: $INSTANCE_ID"
+          echo "Waiting for SSM agent to register..."
+
+          # Wait up to 3 minutes for SSM agent registration
+          for i in $(seq 1 18); do
+            STATUS=$(aws ssm describe-instance-information \
+              --filters "Key=InstanceIds,Values=$INSTANCE_ID" \
+              --query "InstanceInformationList[0].PingStatus" --output text 2>/dev/null || echo "None")
+            if [ "$STATUS" = "Online" ]; then
+              echo "✅ SSM agent is online after ~$((i * 10))s"
+              break
+            fi
+            echo "   Attempt $i/18 — SSM status: $STATUS (waiting 10s...)"
+            sleep 10
+          done
+
+          if [ "$STATUS" != "Online" ]; then
+            echo "⚠️ SSM agent not ready after 3 minutes — skipping sync."
+            echo "   DAGs will sync automatically on next boot via systemd."
+            exit 0
+          fi
+
+          echo "Syncing DAGs to instance: $INSTANCE_ID"
+          aws ssm send-command \
+            --instance-ids "$INSTANCE_ID" \
+            --document-name "AWS-RunShellScript" \
+            --parameters 'commands=["sudo /usr/local/bin/sync-dags.sh"]' \
+            --comment "Sync latest DAGs from GitHub to Airflow EC2"
+          echo "✅ DAG sync command sent successfully."
