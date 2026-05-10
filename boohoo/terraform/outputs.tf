@@ -7,11 +7,6 @@ output "s3_rdl_bucket" {
   value       = aws_s3_bucket.rdl_staging.bucket
 }
 
-output "redshift_endpoint" {
-  description = "Redshift Serverless endpoint"
-  value       = aws_redshiftserverless_workgroup.boohoo.endpoint
-}
-
 output "lambda_function_names" {
   description = "Names of all deployed Lambda functions"
   value       = [for fn in aws_lambda_function.data_generators : fn.function_name]
