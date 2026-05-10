@@ -1,218 +1,214 @@
-# 🏗️ Boohoo Group — Enterprise Data Pipeline
-
-**Multi-brand, multi-source serverless data warehouse on AWS**
-
-![AWS](https://img.shields.io/badge/AWS-Serverless-FF9900?logo=amazon-aws&logoColor=white)
-![dbt](https://img.shields.io/badge/dbt-Data_Transform-FF694B?logo=dbt&logoColor=white)
-![Redshift](https://img.shields.io/badge/Redshift-Serverless-8C4FFF?logo=amazon-redshift&logoColor=white)
-![Python](https://img.shields.io/badge/Python-3.12-3776AB?logo=python&logoColor=white)
-
-*A production-grade data engineering pipeline that ingests data from 7 fashion brands — each running a different e-commerce platform — normalises heterogeneous schemas through a 3-layer DWH architecture, and delivers unified analytics.*
+<p align="center">
+  <h1 align="center">Boohoo Group — Enterprise Data Pipeline</h1>
+  <p align="center">
+    <strong>End-to-end data platform built on AWS, deployed with Terraform, transformed with dbt, and visualised in Looker Studio.</strong>
+  </p>
+  <p align="center">
+    <img src="https://img.shields.io/badge/Terraform-7B42BC?style=for-the-badge&logo=terraform&logoColor=white" alt="Terraform">
+    <img src="https://img.shields.io/badge/AWS_Lambda-FF9900?style=for-the-badge&logo=awslambda&logoColor=white" alt="Lambda">
+    <img src="https://img.shields.io/badge/Amazon_Redshift-8C4FFF?style=for-the-badge&logo=amazonredshift&logoColor=white" alt="Redshift">
+    <img src="https://img.shields.io/badge/Amazon_S3-569A31?style=for-the-badge&logo=amazons3&logoColor=white" alt="S3">
+    <img src="https://img.shields.io/badge/dbt-FF694B?style=for-the-badge&logo=dbt&logoColor=white" alt="dbt">
+    <img src="https://img.shields.io/badge/GitHub_Actions-2088FF?style=for-the-badge&logo=githubactions&logoColor=white" alt="GitHub Actions">
+    <img src="https://img.shields.io/badge/Python-3776AB?style=for-the-badge&logo=python&logoColor=white" alt="Python">
+  </p>
+</p>
 
 ---
 
-## 📐 Architecture
+## Architecture Overview
+
+This project simulates a **production-grade marketing analytics platform** for Boohoo Group — a multi-brand fashion conglomerate operating 7 brands across 5 different e-commerce platforms. The entire cloud environment is defined as **Infrastructure as Code** using Terraform, deployed via **GitHub Actions CI/CD**, and follows a **three-layer data warehouse** pattern (RDL → ODL → ADL).
 
 ```mermaid
 flowchart LR
-    subgraph Sources["Source Systems"]
-        BC[Boohoo Commerce]
-        SF[Salesforce SFCC]
-        SH[Shopify]
-        MG[Magento]
-        OC[Oracle Commerce]
+    subgraph GENERATE["Data Generation"]
+        L1["🔧 9 Lambda\nMicro-services"]
     end
 
-    subgraph Ingest["Ingestion"]
-        EB[EventBridge Weekly]
-        LG[Lambda Generator]
+    subgraph STORE["Data Lake"]
+        S3["📦 S3 Bucket\nJSONL.GZ\nHive-partitioned"]
     end
 
-    subgraph Lake["S3 Data Lake"]
-        S3[boohoo-dns-rdl-staging]
+    subgraph WAREHOUSE["Data Warehouse"]
+        RS["🏛️ Redshift\nServerless"]
     end
 
-    subgraph DWH["Redshift Serverless"]
-        RDL[RDL Layer]
-        ODL[ODL Star Schema]
-        ADL[ADL BI Layer]
+    subgraph TRANSFORM["Transformation"]
+        DBT["⚙️ dbt Core\n30 SQL Models"]
     end
 
-    subgraph BI["Dashboards"]
-        LS[Looker Studio]
+    subgraph VISUALISE["Reporting"]
+        LS["📊 Looker\nStudio"]
     end
 
-    EB --> LG
-    BC --> LG
-    SF --> LG
-    SH --> LG
-    MG --> LG
-    OC --> LG
-    LG --> S3
-    S3 --> RDL
-    RDL --> ODL
-    ODL --> ADL
-    ADL --> LS
-```
+    L1 -->|"EventBridge\nDaily @ Midnight"| S3
+    S3 -->|"COPY"| RS
+    RS -->|"RDL → ODL → ADL"| DBT
+    DBT --> LS
 
-### Orchestration Flow
-
-```mermaid
-sequenceDiagram
-    participant EB as EventBridge
-    participant SF as Step Functions
-    participant L1 as Data Generator
-    participant S3 as S3 Data Lake
-    participant L2 as Redshift Loader
-    participant RS as Redshift
-    participant L3 as dbt Runner
-
-    EB->>SF: Weekly trigger
-    SF->>L1: Generate data
-    L1->>S3: 28 JSONL.GZ files
-    L1-->>SF: Done
-    SF->>L2: Load raw data
-    L2->>RS: COPY from S3
-    L2-->>SF: Done
-    SF->>L3: Run dbt
-    L3->>RS: 30 model transforms
-    L3-->>SF: Done
+    style GENERATE fill:#FF9900,color:#fff
+    style STORE fill:#569A31,color:#fff
+    style WAREHOUSE fill:#8C4FFF,color:#fff
+    style TRANSFORM fill:#FF694B,color:#fff
+    style VISUALISE fill:#4285F4,color:#fff
 ```
 
 ---
 
-## 📊 Data Model
+## Tech Stack
 
-### Multi-Brand Portfolio
+| Layer | Technology | Purpose |
+|-------|-----------|---------|
+| **Infrastructure** | Terraform | All AWS resources defined as code |
+| **CI/CD** | GitHub Actions | Automated build, plan, and deploy on merge to `main` |
+| **Compute** | AWS Lambda (Python 3.11) | 9 micro-services for synthetic data generation |
+| **Scheduling** | Amazon EventBridge | Daily cron triggers at midnight UTC |
+| **Storage** | Amazon S3 | Hive-partitioned data lake (`JSONL.GZ`) |
+| **Warehouse** | Redshift Serverless | Auto-scaling columnar analytics engine |
+| **Transformation** | dbt Core | 30 SQL models across 3 warehouse layers |
+| **BI** | Google Looker Studio | Executive dashboards from the ADL |
 
-This pipeline simulates a real-world enterprise challenge: **7 acquired brands** running on **5 different e-commerce platforms**, each with its own schema conventions.
+---
 
-| Brand | Source System | ID Field | Price Field | Orders |
-|-------|-------------|----------|------------|--------|
-| **Boohoo** | Boohoo Commerce | `sku` | `selling_price` | 15,000 |
-| **BoohooMAN** | Boohoo Commerce | `sku` | `selling_price` | 8,000 |
-| **PrettyLittleThing** | Salesforce Commerce | `product_id` | `price_book_price` | 12,000 |
-| **NastyGal** | Shopify | `variant_id` | `price` | 6,000 |
-| **Karen Millen** | Magento | `entity_id` | `price` | 4,000 |
-| **Coast** | Magento | `entity_id` | `price` | 3,000 |
-| **Debenhams** | Oracle Commerce | `item_id` | `list_price` | 7,000 |
+## Project Structure
 
-> **The DWH challenge:** Each platform uses completely different field names for the same concept. The RDL layer normalises these into a single unified schema.
-
-### Star Schema (ODL)
-
-```mermaid
-erDiagram
-    dim_customers ||--o{ fact_orders : customer_sk
-    dim_products ||--o{ fact_orders : product_sk
-    dim_time ||--o{ fact_orders : order_date
-    map_brand ||--o{ fact_orders : brand
-
-    dim_customers {
-        varchar customer_sk PK
-        varchar customer_nk
-        varchar email
-        varchar first_name
-        varchar last_name
-        varchar city
-        varchar country
-        varchar customer_segment
-        date registration_date
-        varchar brand
-    }
-
-    dim_products {
-        varchar product_sk PK
-        varchar product_nk
-        varchar product_name
-        varchar category
-        numeric current_price
-        numeric cost_price
-        numeric margin_pct
-        varchar brand
-    }
-
-    fact_orders {
-        varchar order_sk PK
-        varchar customer_sk FK
-        timestamp order_timestamp
-        numeric total_amount
-        numeric net_revenue
-        varchar status
-        varchar payment_method
-        varchar brand
-    }
-
-    dim_time {
-        date date_day PK
-        int day_of_week
-        varchar month_name
-        int quarter
-        int year
-        boolean is_peak_season
-    }
-
-    map_brand {
-        varchar brand PK
-        varchar source_system
-        varchar brand_tier
-    }
+```
+boohoo-data-pipeline/
+│
+├── .github/workflows/
+│   └── deploy_lambdas.yml          # CI/CD: Build → Terraform Init → Apply
+│
+├── boohoo/
+│   ├── lambda/                     # 9 independent data generators
+│   │   ├── ecommerce_customers/
+│   │   ├── ecommerce_orders/
+│   │   ├── ecommerce_products/
+│   │   ├── marketing_meta_ads/
+│   │   ├── marketing_google_ads/
+│   │   ├── marketing_tiktok_ads/
+│   │   ├── marketing_ga4_sessions/
+│   │   ├── marketing_email_campaigns/
+│   │   ├── marketing_influencers/
+│   │   └── shared/                 # Shared utilities & config
+│   │       ├── config/
+│   │       │   ├── core.py
+│   │       │   ├── ecommerce.py
+│   │       │   └── marketing.py
+│   │       ├── handler_logic.py
+│   │       └── utils.py
+│   │
+│   ├── terraform/                  # Infrastructure as Code
+│   │   ├── main.tf                 # Provider & backend config
+│   │   ├── iam.tf                  # IAM roles & policies
+│   │   ├── lambdas.tf              # 9 Lambda function definitions
+│   │   ├── eventbridge.tf          # Daily scheduling rules
+│   │   ├── s3.tf                   # S3 buckets & lifecycle policies
+│   │   ├── redshift.tf             # Redshift Serverless cluster
+│   │   ├── variables.tf            # Input variables
+│   │   └── outputs.tf              # Resource outputs
+│   │
+│   ├── dbt/                        # Data transformation layer
+│   │   ├── models/
+│   │   │   ├── rdl/                # Raw Data Layer (21 models)
+│   │   │   ├── odl/                # Operational Data Layer (5 models)
+│   │   │   └── adl/                # Analytics Data Layer (4 models)
+│   │   └── dbt_project.yml
+│   │
+│   ├── sql/                        # DDL & view definitions
+│   │   ├── create_tables.sql
+│   │   └── create_views.sql
+│   │
+│   └── scripts/
+│       └── build_zips.py           # Packages Lambda code for Terraform
+│
+└── README.md
 ```
 
 ---
 
-## 🏛️ DWH Layers (RDL → ODL → ADL)
+## Data Warehouse Layers
+
+The warehouse follows an enterprise **RDL → ODL → ADL** pattern:
 
 ```mermaid
 flowchart TB
-    subgraph RDL["RDL - Raw Data Layer"]
-        R1[rdl_boohoo_commerce]
-        R2[rdl_salesforce_commerce]
-        R3[rdl_shopify]
-        R4[rdl_magento]
-        R5[rdl_oracle_commerce]
+    subgraph RDL["RDL — Raw Data Layer"]
+        direction LR
+        R1["Boohoo Commerce"]
+        R2["Salesforce Commerce"]
+        R3["Shopify"]
+        R4["Magento"]
+        R5["Oracle Commerce"]
     end
 
-    subgraph ODL["ODL - Operational Data Layer"]
-        D1[dim_customers]
-        D2[dim_products]
-        D3[dim_time]
-        F1[fact_orders]
-        M1[map_brand]
+    subgraph ODL["ODL — Operational Data Layer"]
+        direction LR
+        D1["dim_customers"]
+        D2["dim_products"]
+        D3["dim_time"]
+        F1["fact_orders"]
+        M1["map_brand"]
     end
 
-    subgraph ADL["ADL - Analytics / BI Layer"]
-        B1[fact_revenue_by_brand]
-        B2[fact_daily_sales]
-        B3[fact_customer_segments]
-        B4[fact_product_performance]
+    subgraph ADL["ADL — Analytics Data Layer"]
+        direction LR
+        B1["fact_revenue_by_brand"]
+        B2["fact_daily_sales"]
+        B3["fact_customer_segments"]
+        B4["fact_product_performance"]
     end
 
     RDL --> ODL
     ODL --> ADL
+
+    style RDL fill:#1a1a2e,color:#e0e0e0,stroke:#FF9900
+    style ODL fill:#1a1a2e,color:#e0e0e0,stroke:#8C4FFF
+    style ADL fill:#1a1a2e,color:#e0e0e0,stroke:#4285F4
 ```
 
 | Layer | Schema | Purpose | Models |
 |-------|--------|---------|--------|
-| **RDL** | `rdl_{source}` | Raw data dedup from `_history` tables. Source field names aliased to unified names. | 21 |
-| **ODL** | `odl` | Star schema with surrogate keys (`_sk`), natural keys (`_nk`), conformed dimensions, calculated metrics. | 5 |
-| **ADL** | `bi` | Pre-aggregated materialised tables optimised for BI tool queries. | 4 |
-
-### Schema Normalisation Example
-
-The same "product ID" concept across 5 platforms:
-
-```
-Boohoo Commerce:   sku           → product_id
-Salesforce SFCC:   product_id    → product_id  
-Shopify:           variant_id    → product_id
-Magento:           entity_id     → product_id
-Oracle Commerce:   item_id       → product_id
-```
+| **RDL** | `rdl_{source}` | Raw data deduplication. Source field names aliased to unified schema. | 21 |
+| **ODL** | `odl` | Star schema with surrogate keys (`_sk`), conformed dimensions, calculated metrics. | 5 |
+| **ADL** | `bi` | Pre-aggregated materialised tables optimised for dashboard performance. | 4 |
 
 ---
 
-## 🗂️ S3 Data Lake Structure
+## Multi-Brand Challenge
+
+This pipeline simulates a real-world enterprise challenge: **7 acquired brands** running on **5 different e-commerce platforms**, each with its own schema conventions.
+
+| Brand | Source System | ID Field | Price Field |
+|-------|-------------|----------|------------|
+| **Boohoo** | Boohoo Commerce | `sku` | `selling_price` |
+| **BoohooMAN** | Boohoo Commerce | `sku` | `selling_price` |
+| **PrettyLittleThing** | Salesforce Commerce | `product_id` | `price_book_price` |
+| **NastyGal** | Shopify | `variant_id` | `price` |
+| **Karen Millen** | Magento | `entity_id` | `price` |
+| **Coast** | Magento | `entity_id` | `price` |
+| **Debenhams** | Oracle Commerce | `item_id` | `list_price` |
+
+> The RDL layer normalises these into a single unified schema before the data enters the star schema.
+
+---
+
+## Terraform Infrastructure
+
+All AWS resources are declaratively managed via Terraform with remote state stored in S3:
+
+| Resource | Terraform File | Description |
+|----------|---------------|-------------|
+| AWS Provider & S3 Backend | `main.tf` | Provider config, remote state |
+| IAM Role | `iam.tf` | `BoohooDataGeneratorRole` with Lambda & S3 permissions |
+| 9 Lambda Functions | `lambdas.tf` | Micro-service data generators using `for_each` |
+| 9 EventBridge Rules | `eventbridge.tf` | Daily midnight cron schedules |
+| S3 Buckets | `s3.tf` | Data lake with versioning & lifecycle policies |
+| Redshift Serverless | `redshift.tf` | Auto-scaling warehouse (auto-pauses when idle) |
+
+---
+
+## S3 Data Lake Structure
 
 ```
 s3://boohoo-dns-rdl-staging/
@@ -232,99 +228,56 @@ s3://boohoo-dns-rdl-staging/
 
 ---
 
-## 🛠️ Tech Stack
+## CI/CD Pipeline
 
-| Layer | Technology | Purpose |
-|-------|-----------|---------|
-| **Orchestration** | EventBridge + Step Functions | Weekly scheduling + state management |
-| **Compute** | AWS Lambda (Python 3.12) | Data generation, loading, dbt execution |
-| **Storage** | Amazon S3 (JSONL.GZ) | Partitioned data lake with Hive-style paths |
-| **Warehouse** | Redshift Serverless | Auto-scaling columnar analytics engine |
-| **Transformation** | dbt Core | 30 SQL models across 3 layers |
-| **Infrastructure** | AWS CDK (Python) | Infrastructure as Code |
-| **BI** | Google Looker Studio | Interactive dashboards from ADL |
-| **Showcase** | Apache Airflow DAG | Portfolio orchestration demo |
+Every push to `main` triggers an automated deployment via GitHub Actions:
+
+```mermaid
+flowchart LR
+    A["Push to main"] --> B["Build Lambda ZIPs"]
+    B --> C["terraform init"]
+    C --> D["terraform apply"]
+    D --> E["✅ Infrastructure Updated"]
+
+    style A fill:#2088FF,color:#fff
+    style E fill:#28a745,color:#fff
+```
+
+Branch protection rules enforce that **all changes must go through a Pull Request** — no direct pushes to `main` are permitted.
 
 ---
 
-## 📁 Project Structure
-
-```
-boohoo-data-pipeline/
-│
-├── lambda/
-│   ├── data_generator/         # 7 brands × 4 datasets (config.py + handler.py)
-│   └── redshift_loader/        # COPY from S3 with manifest files
-│
-├── dbt/
-│   ├── dbt_project.yml         # Layer → schema mapping
-│   └── models/
-│       ├── rdl/                # Raw Data Layer (21 models)
-│       │   ├── boohoo_commerce/     → sku → product_id
-│       │   ├── salesforce_commerce/ → product_id → product_id
-│       │   ├── shopify/             → variant_id → product_id
-│       │   ├── magento/             → entity_id → product_id
-│       │   └── oracle_commerce/     → item_id → product_id
-│       ├── odl/                # Operational Data Layer (5 models)
-│       │   ├── dim/            #   dim_customers, dim_products, dim_time
-│       │   ├── fact/           #   fact_orders
-│       │   └── map/            #   map_brand
-│       └── adl/bi/             # Analytics Data Layer (4 models)
-│
-├── airflow/dags/               # Showcase Airflow DAG
-├── cdk/stacks/                 # CDK infrastructure
-├── sql/                        # DDL + views
-└── scripts/                    # Deploy / teardown helpers
-```
-
----
-
-## 🚀 Quick Start
+## Quick Start
 
 ```bash
 # Clone
 git clone https://github.com/TimiOlayinka/boohoo-data-pipeline.git
 cd boohoo-data-pipeline
 
-# Install
-pip install -r requirements.txt
+# Build Lambda packages
+python boohoo/scripts/build_zips.py
 
-# Deploy
-cdk bootstrap && cdk deploy
+# Deploy infrastructure (requires AWS credentials)
+cd boohoo/terraform
+terraform init
+terraform plan
+terraform apply
 
-# Generate data
-python lambda/data_generator/handler.py
-
-# Run dbt
-cd dbt && dbt deps && dbt run && dbt test
+# Run dbt transformations
+cd ../dbt && dbt deps && dbt run && dbt test
 ```
 
 ---
 
-## 💰 Cost Estimate
+## Cost Estimate
 
 | Service | Monthly | Notes |
 |---------|---------|-------|
 | S3 | ~$0.01 | < 50MB JSONL.GZ |
-| Lambda | ~$0.00 | Free tier |
+| Lambda | $0.00 | 270 invocations/month (Free Tier: 1M) |
+| EventBridge | $0.00 | Scheduled rules are free |
 | Redshift Serverless | ~$0.50–2.00 | Auto-pauses when idle |
-| Step Functions | ~$0.00 | 4 transitions/week |
-| Secrets Manager | $0.40 | 1 secret |
 | **Total** | **~$1–3/month** | |
-
----
-
-## 🗺️ Roadmap
-
-- [x] Multi-brand data generator (7 brands, 5 source systems)
-- [x] S3 data lake with Hive-style partitioning
-- [x] dbt project (30 models: RDL → ODL → ADL)
-- [x] Airflow DAG (portfolio showcase)
-- [ ] Redshift Serverless provisioning
-- [ ] COPY + manifest ingestion pipeline
-- [ ] Step Functions orchestrator
-- [ ] EventBridge weekly schedule
-- [ ] Looker Studio dashboards
 
 ---
 
