@@ -2,6 +2,16 @@
 # S3 Buckets
 # ─────────────────────────────────────────────
 
+import {
+  to = aws_s3_bucket.rdl_staging
+  id = "boohoo-dns-rdl-staging"
+}
+
+import {
+  to = aws_s3_bucket.terraform_state
+  id = "boohoo-terraform-state-332779204498"
+}
+
 resource "aws_s3_bucket" "rdl_staging" {
   bucket = "boohoo-dns-rdl-staging"
 }
@@ -19,6 +29,8 @@ resource "aws_s3_bucket_lifecycle_configuration" "rdl_staging" {
   rule {
     id     = "archive-old-data"
     status = "Enabled"
+
+    filter {}
 
     transition {
       days          = 90
