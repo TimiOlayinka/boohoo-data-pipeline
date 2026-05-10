@@ -24,7 +24,7 @@ google_campaigns AS (
 tiktok_campaigns AS (
     SELECT DISTINCT
         SPLIT_PART(ad_id, '-', 1) || '-' || SPLIT_PART(ad_id, '-', 2) || '-' || SPLIT_PART(ad_id, '-', 3)
-                                                        AS campaign_nk,
+            AS campaign_nk,
         campaign_name,
         objective,
         'TikTok Ads'                                    AS platform,
@@ -39,9 +39,11 @@ all_campaigns AS (
     SELECT * FROM tiktok_campaigns
 ),
 dedup AS (
-    SELECT *, ROW_NUMBER() OVER (
-        PARTITION BY campaign_nk, platform, brand ORDER BY campaign_name
-    ) AS rnk
+    SELECT
+        *,
+        ROW_NUMBER() OVER (
+            PARTITION BY campaign_nk, platform, brand ORDER BY campaign_name
+        ) AS rnk
     FROM all_campaigns
 )
 SELECT

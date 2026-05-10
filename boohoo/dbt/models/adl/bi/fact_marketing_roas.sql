@@ -46,13 +46,13 @@ SELECT
     COALESCE(r.converting_sessions, 0)                  AS converting_sessions,
     -- ROAS metrics
     ROUND(COALESCE(r.revenue_attributed, 0) / NULLIF(s.spend, 0), 2)
-                                                        AS roas,
+        AS roas,
     ROUND(s.spend / NULLIF(r.orders, 0), 2)             AS cost_per_acquisition,
     ROUND(s.spend / NULLIF(s.clicks, 0), 2)             AS cost_per_click,
     ROUND(r.revenue_attributed / NULLIF(r.orders, 0), 2)
-                                                        AS avg_order_value,
+        AS avg_order_value,
     ROUND(r.converting_sessions::FLOAT / NULLIF(r.sessions, 0) * 100, 2)
-                                                        AS session_conversion_rate
+        AS session_conversion_rate
 FROM paid_spend s
 FULL OUTER JOIN ga4_revenue r
     ON s.date_nk = r.date_nk AND s.brand = r.brand AND s.channel = r.channel

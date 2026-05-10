@@ -5,38 +5,55 @@
 ------------------------------------------------------------------------------------------------------------------------
 WITH meta_campaigns AS (
     SELECT
-        date_nk, brand, brand_tier,
+        date_nk,
+        brand,
+        brand_tier,
         meta_campaign_name                              AS campaign_name,
         campaign_type,
         'Meta Ads'                                      AS channel,
         objective,
-        SUM(spend) AS spend, SUM(impressions) AS impressions,
-        SUM(clicks) AS clicks, SUM(reach) AS reach,
-        0 AS conversions, 0::NUMERIC AS conversions_value
+        SUM(spend) AS spend,
+        SUM(impressions) AS impressions,
+        SUM(clicks) AS clicks,
+        SUM(reach) AS reach,
+        0 AS conversions,
+        0::NUMERIC AS conversions_value
     FROM {{ ref('fact_meta_campaign_insights') }}
     GROUP BY 1, 2, 3, 4, 5, 7
 ),
 google_campaigns AS (
     SELECT
-        date_nk, brand, brand_tier,
+        date_nk,
+        brand,
+        brand_tier,
         google_ads_campaign_name                        AS campaign_name,
         channel_group                                   AS campaign_type,
         'Google Ads'                                    AS channel,
         channel_type                                    AS objective,
-        SUM(spend), SUM(impressions), SUM(clicks), 0,
-        SUM(conversions)::INT, SUM(conversions_value)
+        SUM(spend),
+        SUM(impressions),
+        SUM(clicks),
+        0,
+        SUM(conversions)::INT,
+        SUM(conversions_value)
     FROM {{ ref('fact_google_ads_performance') }}
     GROUP BY 1, 2, 3, 4, 5, 7
 ),
 tiktok_campaigns AS (
     SELECT
-        date_nk, brand, brand_tier,
+        date_nk,
+        brand,
+        brand_tier,
         tiktok_campaign_name                            AS campaign_name,
         'TikTok'                                        AS campaign_type,
         'TikTok Ads'                                    AS channel,
         objective,
-        SUM(spend), SUM(impressions), SUM(clicks), SUM(reach),
-        SUM(conversion)::INT, 0::NUMERIC
+        SUM(spend),
+        SUM(impressions),
+        SUM(clicks),
+        SUM(reach),
+        SUM(conversion)::INT,
+        0::NUMERIC
     FROM {{ ref('fact_tiktok_ad_insights') }}
     GROUP BY 1, 2, 3, 4, 5, 7
 ),
