@@ -43,4 +43,6 @@ jobs:
 
       - name: Terraform Apply
         working-directory: ./boohoo/terraform
+        env:
+          TF_VAR_redshift_master_password: ${{ secrets.TF_VAR_REDSHIFT_MASTER_PASSWORD }}
         run: terraform apply -auto-approve
