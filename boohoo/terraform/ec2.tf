@@ -60,10 +60,11 @@ data "aws_ami" "amazon_linux" {
 
 # EC2 Instance
 resource "aws_instance" "airflow" {
-  ami                    = data.aws_ami.amazon_linux.id
-  instance_type          = "t3.medium"
-  key_name               = aws_key_pair.airflow.key_name
-  vpc_security_group_ids = [aws_security_group.airflow.id]
+  ami                         = data.aws_ami.amazon_linux.id
+  instance_type               = "t3.medium"
+  key_name                    = aws_key_pair.airflow.key_name
+  vpc_security_group_ids      = [aws_security_group.airflow.id]
+  user_data_replace_on_change = true
 
   root_block_device {
     volume_size = 20
