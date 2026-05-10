@@ -67,19 +67,11 @@ with DAG(
     dag_id="01b_s3_to_redshift",
     default_args=default_args,
     description="YAML-driven S3 → Redshift loader with TaskGroups per source system",
-    schedule_interval="@daily",
+    schedule_interval="20 1 * * *",
     start_date=datetime(2026, 5, 1),
     catchup=False,
     tags=["ingestion", "redshift", "copy"],
 ) as dag:
-
-    wait_for_ingestion = ExternalTaskSensor(
-        task_id="wait_for_ingestion",
-        external_dag_id="01_ingestion",
-        external_task_id=None,
-        timeout=600,
-        poke_interval=30,
-    )
 
     all_groups = []
 
@@ -104,5 +96,3 @@ with DAG(
                     )
 
         all_groups.append(source_group)
-
-    wait_for_ingestion >> all_groups
