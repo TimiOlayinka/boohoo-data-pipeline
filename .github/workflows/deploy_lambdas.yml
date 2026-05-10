@@ -3,7 +3,7 @@ name: Deploy Boohoo Lambdas
 on:
   push:
     branches:
-      - master
+      - main
     paths:
       - 'boohoo/lambda/**'
       - 'boohoo/scripts/deploy_lambdas.py'
