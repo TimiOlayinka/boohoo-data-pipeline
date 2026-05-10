@@ -73,6 +73,7 @@ resource "aws_instance" "airflow" {
 
   user_data = <<-EOF
     #!/bin/bash
+    # v2 - with DAG sync from GitHub
     set -e
 
     # Swap file (1GB)
