@@ -93,6 +93,35 @@ resource "aws_instance" "airflow" {
     mkdir -p $AIRFLOW_HOME/dags $AIRFLOW_HOME/logs
     pip3.11 install apache-airflow==2.10.5 dbt-redshift boto3
 
+    # Clone the repo to sync DAGs
+    git clone https://github.com/TimiOlayinka/boohoo-data-pipeline.git /opt/boohoo-repo
+    cp /opt/boohoo-repo/airflow/dags/*.py $AIRFLOW_HOME/dags/
+
+    # Create a sync script that runs on every boot
+    cat > /usr/local/bin/sync-dags.sh <<'SYNC'
+    #!/bin/bash
+    cd /opt/boohoo-repo
+    git pull origin main
+    cp /opt/boohoo-repo/airflow/dags/*.py /opt/airflow/dags/
+    chown -R airflow:airflow /opt/airflow/dags/
+    SYNC
+    chmod +x /usr/local/bin/sync-dags.sh
+
+    # Systemd service to sync DAGs on boot
+    cat > /etc/systemd/system/sync-dags.service <<SYSTEMD
+    [Unit]
+    Description=Sync Airflow DAGs from GitHub
+    After=network-online.target
+    Wants=network-online.target
+
+    [Service]
+    Type=oneshot
+    ExecStart=/usr/local/bin/sync-dags.sh
+
+    [Install]
+    WantedBy=multi-user.target
+    SYSTEMD
+
     # Initialise Airflow database
     export AIRFLOW__CORE__LOAD_EXAMPLES=False
     export AIRFLOW__WEBSERVER__EXPOSE_CONFIG=False
@@ -114,11 +143,13 @@ resource "aws_instance" "airflow" {
     cat > /etc/systemd/system/airflow-webserver.service <<SYSTEMD
     [Unit]
     Description=Airflow Webserver
-    After=network.target
+    After=network.target sync-dags.service
 
     [Service]
     Environment=AIRFLOW_HOME=/opt/airflow
     Environment=AIRFLOW__CORE__LOAD_EXAMPLES=False
+    Environment=REDSHIFT_PASSWORD=B00h00Dwh!2026x
+    Environment=REDSHIFT_IAM_ROLE=arn:aws:iam::332779204498:role/BoohooDataGeneratorRole
     User=airflow
     ExecStart=/usr/local/bin/airflow webserver --port 8080
     Restart=always
@@ -131,11 +162,13 @@ resource "aws_instance" "airflow" {
     cat > /etc/systemd/system/airflow-scheduler.service <<SYSTEMD
     [Unit]
     Description=Airflow Scheduler
-    After=network.target
+    After=network.target sync-dags.service
 
     [Service]
     Environment=AIRFLOW_HOME=/opt/airflow
     Environment=AIRFLOW__CORE__LOAD_EXAMPLES=False
+    Environment=REDSHIFT_PASSWORD=B00h00Dwh!2026x
+    Environment=REDSHIFT_IAM_ROLE=arn:aws:iam::332779204498:role/BoohooDataGeneratorRole
     User=airflow
     ExecStart=/usr/local/bin/airflow scheduler
     Restart=always
@@ -146,8 +179,8 @@ resource "aws_instance" "airflow" {
 
     # Enable and start services
     systemctl daemon-reload
-    systemctl enable airflow-webserver airflow-scheduler
-    systemctl start airflow-webserver airflow-scheduler
+    systemctl enable sync-dags airflow-webserver airflow-scheduler
+    systemctl start sync-dags airflow-webserver airflow-scheduler
   EOF
 
   tags = {
