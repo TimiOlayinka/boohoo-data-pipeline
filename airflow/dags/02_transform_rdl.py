@@ -21,19 +21,11 @@ with DAG(
     dag_id="02_transform_rdl",
     default_args=default_args,
     description="Raw Data Layer: Deduplicate and normalise source data from 5 platforms",
-    schedule_interval="@daily",
+    schedule_interval="30 1 * * *",
     start_date=datetime(2026, 5, 1),
     catchup=False,
     tags=["transform", "dbt", "rdl"],
 ) as dag:
-
-    wait_for_s3_load = ExternalTaskSensor(
-        task_id="wait_for_s3_load",
-        external_dag_id="01b_s3_to_redshift",
-        external_task_id=None,  # Wait for entire DAG to complete
-        timeout=600,
-        poke_interval=30,
-    )
 
     dbt_run_rdl = BashOperator(
         task_id="dbt_run_rdl",
@@ -45,4 +37,4 @@ with DAG(
         bash_command=f"cd {DBT_DIR} && dbt test --select tag:rdl --profiles-dir .",
     )
 
-    wait_for_s3_load >> dbt_run_rdl >> dbt_test_rdl
+    dbt_run_rdl >> dbt_test_rdl

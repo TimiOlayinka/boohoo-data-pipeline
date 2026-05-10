@@ -49,8 +49,8 @@ def invoke_lambda(function_name, **kwargs):
 with DAG(
     dag_id="01_ingestion",
     default_args=default_args,
-    description="Generate synthetic data across 9 Lambda micro-services into S3",
-    schedule_interval="@daily",
+    description="Trigger AWS Lambda functions to generate and load data to S3",
+    schedule_interval="10 1 * * *",
     start_date=datetime(2026, 5, 1),
     catchup=False,
     tags=["ingestion", "lambda", "s3"],
