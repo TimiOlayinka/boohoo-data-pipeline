@@ -58,12 +58,78 @@ data "aws_ami" "amazon_linux" {
   }
 }
 
+# IAM Role for Airflow EC2
+resource "aws_iam_role" "airflow_ec2_role" {
+  name = "BoohooAirflowEC2Role"
+
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Action = "sts:AssumeRole"
+        Effect = "Allow"
+        Principal = {
+          Service = "ec2.amazonaws.com"
+        }
+      }
+    ]
+  })
+}
+
+resource "aws_iam_role_policy" "airflow_ec2_policy" {
+  name = "AirflowOrchestratorPolicy"
+  role = aws_iam_role.airflow_ec2_role.id
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Sid    = "InvokeLambda"
+        Effect = "Allow"
+        Action = [
+          "lambda:InvokeFunction"
+        ]
+        Resource = "arn:aws:lambda:eu-west-2:*:function:boohoo-*"
+      },
+      {
+        Sid    = "RedshiftDataAPI"
+        Effect = "Allow"
+        Action = [
+          "redshift-data:ExecuteStatement",
+          "redshift-data:DescribeStatement",
+          "redshift-data:GetStatementResult",
+          "redshift-serverless:GetCredentials"
+        ]
+        Resource = "*"
+      },
+      {
+        Sid    = "S3ReadAccess"
+        Effect = "Allow"
+        Action = [
+          "s3:GetObject",
+          "s3:ListBucket"
+        ]
+        Resource = [
+          "arn:aws:s3:::boohoo-*",
+          "arn:aws:s3:::boohoo-*/*"
+        ]
+      }
+    ]
+  })
+}
+
+resource "aws_iam_instance_profile" "airflow" {
+  name = "BoohooAirflowInstanceProfile"
+  role = aws_iam_role.airflow_ec2_role.name
+}
+
 # EC2 Instance
 resource "aws_instance" "airflow" {
   ami                         = data.aws_ami.amazon_linux.id
   instance_type               = "t3.medium"
   key_name                    = aws_key_pair.airflow.key_name
   vpc_security_group_ids      = [aws_security_group.airflow.id]
+  iam_instance_profile        = aws_iam_instance_profile.airflow.name
   user_data_replace_on_change = true
 
   root_block_device {
