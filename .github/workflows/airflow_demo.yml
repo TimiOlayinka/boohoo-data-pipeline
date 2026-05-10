@@ -53,7 +53,7 @@ jobs:
           echo "=========================================="
           echo "  AIRFLOW IS LIVE!"
           echo "  URL:      http://$PUBLIC_IP:8080"
-          echo "  Username: password"
+          echo "  Username: admin"
           echo "  Password: mYGnUG7JuiCwtaH9uX6HQq93"
           echo "  Runtime:  ${{ github.event.inputs.hours }} hour(s)"
           echo "=========================================="

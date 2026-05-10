@@ -100,7 +100,7 @@ resource "aws_instance" "airflow" {
 
     # Create admin user
     airflow users create \
-      --username password \
+      --username admin \
       --password mYGnUG7JuiCwtaH9uX6HQq93 \
       --firstname Timi \
       --lastname Olayinka \
