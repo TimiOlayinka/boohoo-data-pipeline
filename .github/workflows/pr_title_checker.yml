@@ -1,0 +1,19 @@
+name: "PR Title Checker"
+
+on:
+  pull_request:
+    types: [opened, edited, synchronize, reopened]
+
+jobs:
+  check-title:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check PR Title format (DATA-X_summary)
+        env:
+          TITLE: ${{ github.event.pull_request.title }}
+        run: |
+          if [[ ! "$TITLE" =~ ^DATA-[0-9]+_.*$ ]]; then
+            echo "❌ Error: Pull Request title must follow the format 'DATA-<number>_<summary>' (e.g., DATA-6_sql_formatting)"
+            exit 1
+          fi
+          echo "✅ PR Title matches the required format."
