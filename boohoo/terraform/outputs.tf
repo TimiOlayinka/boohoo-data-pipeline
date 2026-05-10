@@ -21,8 +21,3 @@ output "lambda_function_names" {
   description = "Names of all deployed Lambda functions"
   value       = [for fn in aws_lambda_function.data_generators : fn.function_name]
 }
-
-output "eventbridge_rules" {
-  description = "Names of all EventBridge scheduling rules"
-  value       = [for rule in aws_cloudwatch_event_rule.daily_trigger : rule.name]
-}
