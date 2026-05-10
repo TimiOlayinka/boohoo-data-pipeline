@@ -254,6 +254,8 @@ resource "aws_instance" "airflow" {
     systemctl daemon-reload
     systemctl enable sync-dags airflow-webserver airflow-scheduler
     systemctl start sync-dags airflow-webserver airflow-scheduler
+
+    # Force recreation for SSM agent registration (DATA-12)
   EOF
 
   tags = {
