@@ -25,6 +25,8 @@ with open(CONFIG_PATH, "r") as f:
     config = yaml.safe_load(f)
 
 SETTINGS = config["settings"]
+# Resolve env var placeholder for IAM role
+SETTINGS["iam_role"] = os.environ.get("REDSHIFT_IAM_ROLE", SETTINGS["iam_role"])
 
 
 def copy_s3_to_redshift(brand, source, dataset, schema, table, **kwargs):

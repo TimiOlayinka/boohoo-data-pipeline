@@ -5,7 +5,7 @@
 
 settings:
   bucket: boohoo-dns-rdl-staging
-  iam_role: "arn:aws:iam::332779204498:role/BoohooDataGeneratorRole"
+  iam_role: ${REDSHIFT_IAM_ROLE}
   workgroup: bellosdata
   database: boohoo_dwh
   region: eu-west-2
