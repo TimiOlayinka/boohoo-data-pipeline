@@ -31,7 +31,7 @@ WITH raw_data AS (
 )
 SELECT
     MD5(rd.meta_campaign_nk || '|' || rd.date_nk || '|' || rd.publisher_platform || '|' || rd.brand)
-                                                        AS meta_insight_sk,
+        AS meta_insight_sk,
     rd.meta_campaign_nk,
     rd.meta_campaign_name,
     dc.campaign_sk,

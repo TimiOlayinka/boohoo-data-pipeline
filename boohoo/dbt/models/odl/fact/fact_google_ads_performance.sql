@@ -34,7 +34,8 @@ WITH raw_data AS (
     FROM {{ ref('rdl_google_ads') }}
 ),
 classified AS (
-    SELECT *,
+    SELECT
+        *,
         CASE
             WHEN channel_type = 'PERFORMANCE_MAX'                           THEN 'Performance Max'
             WHEN channel_type = 'DEMAND_GEN'                                THEN 'Demand Gen'
@@ -51,7 +52,7 @@ classified AS (
 )
 SELECT
     MD5(d.google_ads_ad_nk || '|' || d.date_nk || '|' || d.device || '|' || d.brand)
-                                                        AS google_ads_sk,
+        AS google_ads_sk,
     d.google_ads_customer_nk,
     d.google_ads_campaign_nk,
     d.google_ads_ad_group_nk,

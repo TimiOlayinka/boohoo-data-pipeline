@@ -3,19 +3,19 @@
 -- Unified product dimension with calculated margin metrics
 ------------------------------------------------------------------------------------------------------------------------
 WITH all_products AS (
-SELECT * FROM {{ ref('boohoo_products') }}
-UNION ALL
-SELECT * FROM {{ ref('boohoo_man_products') }}
-UNION ALL
-SELECT * FROM {{ ref('plt_products') }}
-UNION ALL
-SELECT * FROM {{ ref('nastygal_products') }}
-UNION ALL
-SELECT * FROM {{ ref('karen_millen_products') }}
-UNION ALL
-SELECT * FROM {{ ref('coast_products') }}
-UNION ALL
-SELECT * FROM {{ ref('debenhams_products') }}
+    SELECT * FROM {{ ref('boohoo_products') }}
+    UNION ALL
+    SELECT * FROM {{ ref('boohoo_man_products') }}
+    UNION ALL
+    SELECT * FROM {{ ref('plt_products') }}
+    UNION ALL
+    SELECT * FROM {{ ref('nastygal_products') }}
+    UNION ALL
+    SELECT * FROM {{ ref('karen_millen_products') }}
+    UNION ALL
+    SELECT * FROM {{ ref('coast_products') }}
+    UNION ALL
+    SELECT * FROM {{ ref('debenhams_products') }}
 )
 SELECT
     MD5(product_id || '|' || brand) AS product_sk,

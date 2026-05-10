@@ -5,7 +5,7 @@
 ------------------------------------------------------------------------------------------------------------------------
 SELECT
     MD5(e.campaign_id || '|' || e.date_nk || '|' || e.brand)
-                                                        AS email_engagement_sk,
+        AS email_engagement_sk,
     e.campaign_id                                       AS campaign_nk,
     e.campaign_name,
     e.campaign_type,

@@ -3,19 +3,19 @@
 -- Unified order fact table with surrogate keys to dimensions
 ------------------------------------------------------------------------------------------------------------------------
 WITH all_orders AS (
-SELECT * FROM {{ ref('boohoo_orders') }}
-UNION ALL
-SELECT * FROM {{ ref('boohoo_man_orders') }}
-UNION ALL
-SELECT * FROM {{ ref('plt_orders') }}
-UNION ALL
-SELECT * FROM {{ ref('nastygal_orders') }}
-UNION ALL
-SELECT * FROM {{ ref('karen_millen_orders') }}
-UNION ALL
-SELECT * FROM {{ ref('coast_orders') }}
-UNION ALL
-SELECT * FROM {{ ref('debenhams_orders') }}
+    SELECT * FROM {{ ref('boohoo_orders') }}
+    UNION ALL
+    SELECT * FROM {{ ref('boohoo_man_orders') }}
+    UNION ALL
+    SELECT * FROM {{ ref('plt_orders') }}
+    UNION ALL
+    SELECT * FROM {{ ref('nastygal_orders') }}
+    UNION ALL
+    SELECT * FROM {{ ref('karen_millen_orders') }}
+    UNION ALL
+    SELECT * FROM {{ ref('coast_orders') }}
+    UNION ALL
+    SELECT * FROM {{ ref('debenhams_orders') }}
 )
 SELECT
     MD5(order_id || '|' || brand)       AS order_sk,

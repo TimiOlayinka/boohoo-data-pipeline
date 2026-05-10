@@ -6,7 +6,8 @@
 WITH monthly_spend AS (
     SELECT
         DATE_TRUNC('month', date_nk)::DATE AS month_start,
-        brand, brand_tier,
+        brand,
+        brand_tier,
         SUM(spend) AS total_spend,
         SUM(impressions) AS total_impressions,
         SUM(clicks) AS total_clicks,
@@ -45,7 +46,8 @@ combined AS (
         s.month_start,
         EXTRACT(YEAR FROM s.month_start) AS year,
         EXTRACT(MONTH FROM s.month_start) AS month,
-        s.brand, s.brand_tier,
+        s.brand,
+        s.brand_tier,
         s.total_spend,
         s.total_impressions,
         s.total_clicks,
@@ -55,7 +57,11 @@ combined AS (
         COALESCE(r.unique_visitors, 0) AS unique_visitors,
         COALESCE(e.email_revenue, 0) AS email_revenue,
         COALESCE(e.emails_delivered, 0) AS emails_delivered,
-        s.meta_spend, s.google_spend, s.tiktok_spend, s.email_spend, s.influencer_spend,
+        s.meta_spend,
+        s.google_spend,
+        s.tiktok_spend,
+        s.email_spend,
+        s.influencer_spend,
         -- Channel mix percentages
         ROUND(s.meta_spend / NULLIF(s.total_spend, 0) * 100, 1) AS meta_mix_pct,
         ROUND(s.google_spend / NULLIF(s.total_spend, 0) * 100, 1) AS google_mix_pct,
@@ -75,13 +81,16 @@ combined AS (
 SELECT
     *,
     -- Month-over-Month growth
-    ROUND((total_spend - LAG(total_spend) OVER (PARTITION BY brand ORDER BY month_start))
+    ROUND(
+        (total_spend - LAG(total_spend) OVER (PARTITION BY brand ORDER BY month_start))
         / NULLIF(LAG(total_spend) OVER (PARTITION BY brand ORDER BY month_start), 0) * 100, 1)
         AS spend_mom_growth_pct,
-    ROUND((total_revenue - LAG(total_revenue) OVER (PARTITION BY brand ORDER BY month_start))
+    ROUND(
+        (total_revenue - LAG(total_revenue) OVER (PARTITION BY brand ORDER BY month_start))
         / NULLIF(LAG(total_revenue) OVER (PARTITION BY brand ORDER BY month_start), 0) * 100, 1)
         AS revenue_mom_growth_pct,
-    ROUND((blended_roas - LAG(blended_roas) OVER (PARTITION BY brand ORDER BY month_start))
+    ROUND(
+        (blended_roas - LAG(blended_roas) OVER (PARTITION BY brand ORDER BY month_start))
         / NULLIF(LAG(blended_roas) OVER (PARTITION BY brand ORDER BY month_start), 0) * 100, 1)
         AS roas_mom_growth_pct
 FROM combined

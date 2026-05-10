@@ -4,42 +4,72 @@
 -- Inspired by HnB fact_campaign_spend_daily_metabase_view.sql
 ------------------------------------------------------------------------------------------------------------------------
 WITH meta_daily AS (
-    SELECT date_nk, brand, brand_tier,
-           'Meta Ads' AS channel, 'Paid Social' AS channel_type,
-           SUM(spend) AS spend, SUM(impressions) AS impressions,
-           SUM(clicks) AS clicks, SUM(reach) AS reach
+    SELECT
+        date_nk,
+        brand,
+        brand_tier,
+        'Meta Ads' AS channel,
+        'Paid Social' AS channel_type,
+        SUM(spend) AS spend,
+        SUM(impressions) AS impressions,
+        SUM(clicks) AS clicks,
+        SUM(reach) AS reach
     FROM {{ ref('fact_meta_campaign_insights') }}
     GROUP BY 1, 2, 3
 ),
 google_daily AS (
-    SELECT date_nk, brand, brand_tier,
-           'Google Ads' AS channel, 'Paid Search' AS channel_type,
-           SUM(spend) AS spend, SUM(impressions) AS impressions,
-           SUM(clicks) AS clicks, 0 AS reach
+    SELECT
+        date_nk,
+        brand,
+        brand_tier,
+        'Google Ads' AS channel,
+        'Paid Search' AS channel_type,
+        SUM(spend) AS spend,
+        SUM(impressions) AS impressions,
+        SUM(clicks) AS clicks,
+        0 AS reach
     FROM {{ ref('fact_google_ads_performance') }}
     GROUP BY 1, 2, 3
 ),
 tiktok_daily AS (
-    SELECT date_nk, brand, brand_tier,
-           'TikTok Ads' AS channel, 'Paid Social' AS channel_type,
-           SUM(spend) AS spend, SUM(impressions) AS impressions,
-           SUM(clicks) AS clicks, SUM(reach) AS reach
+    SELECT
+        date_nk,
+        brand,
+        brand_tier,
+        'TikTok Ads' AS channel,
+        'Paid Social' AS channel_type,
+        SUM(spend) AS spend,
+        SUM(impressions) AS impressions,
+        SUM(clicks) AS clicks,
+        SUM(reach) AS reach
     FROM {{ ref('fact_tiktok_ad_insights') }}
     GROUP BY 1, 2, 3
 ),
 email_daily AS (
-    SELECT date_nk, brand, brand_tier,
-           'Email' AS channel, 'Email' AS channel_type,
-           0 AS spend, 0 AS impressions,
-           SUM(clicked) AS clicks, SUM(delivered) AS reach
+    SELECT
+        date_nk,
+        brand,
+        brand_tier,
+        'Email' AS channel,
+        'Email' AS channel_type,
+        0 AS spend,
+        0 AS impressions,
+        SUM(clicked) AS clicks,
+        SUM(delivered) AS reach
     FROM {{ ref('fact_email_engagement') }}
     GROUP BY 1, 2, 3
 ),
 influencer_daily AS (
-    SELECT date_nk, brand, brand_tier,
-           'Influencer' AS channel, 'Influencer' AS channel_type,
-           SUM(cost) AS spend, SUM(impressions) AS impressions,
-           SUM(link_clicks) AS clicks, SUM(reach) AS reach
+    SELECT
+        date_nk,
+        brand,
+        brand_tier,
+        'Influencer' AS channel,
+        'Influencer' AS channel_type,
+        SUM(cost) AS spend,
+        SUM(impressions) AS impressions,
+        SUM(link_clicks) AS clicks,
+        SUM(reach) AS reach
     FROM {{ ref('fact_influencer_performance') }}
     GROUP BY 1, 2, 3
 ),

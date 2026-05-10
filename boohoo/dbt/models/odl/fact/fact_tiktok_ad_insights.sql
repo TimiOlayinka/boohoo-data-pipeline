@@ -35,7 +35,7 @@ WITH raw_data AS (
 )
 SELECT
     MD5(rd.tiktok_ad_nk || '|' || rd.date_nk || '|' || rd.brand)
-                                                        AS tiktok_ad_sk,
+        AS tiktok_ad_sk,
     rd.tiktok_ad_nk,
     rd.tiktok_advertiser_id,
     rd.tiktok_campaign_name,
