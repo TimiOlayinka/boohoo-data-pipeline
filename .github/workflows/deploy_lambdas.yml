@@ -37,3 +37,7 @@ jobs:
       - name: Deploy Lambda Functions
         working-directory: ./boohoo
         run: python scripts/deploy_lambdas.py
+
+      - name: Schedule Lambda Functions
+        working-directory: ./boohoo
+        run: python scripts/schedule_lambdas.py
