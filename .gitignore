@@ -17,6 +17,12 @@ __pycache__/
 .DS_Store
 Thumbs.db
 
-# Temp
-*.gz
-*.tmp
+# Build artifacts
+dist/
+
+# Terraform
+.terraform/
+.terraform.lock.hcl
+*.tfstate
+*.tfstate.backup
+*.tfvars
