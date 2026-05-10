@@ -1,0 +1,173 @@
+# ─────────────────────────────────────────────
+# Airflow EC2 Instance
+# ─────────────────────────────────────────────
+
+# SSH Key Pair
+resource "tls_private_key" "airflow" {
+  algorithm = "RSA"
+  rsa_bits  = 4096
+}
+
+resource "aws_key_pair" "airflow" {
+  key_name   = "boohoo-airflow-key"
+  public_key = tls_private_key.airflow.public_key_openssh
+}
+
+# Security Group
+resource "aws_security_group" "airflow" {
+  name        = "boohoo-airflow-sg"
+  description = "Allow Airflow UI and SSH access"
+
+  ingress {
+    description = "Airflow Web UI"
+    from_port   = 8080
+    to_port     = 8080
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  ingress {
+    description = "SSH"
+    from_port   = 22
+    to_port     = 22
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+}
+
+# Get latest Amazon Linux 2023 AMI
+data "aws_ami" "amazon_linux" {
+  most_recent = true
+  owners      = ["amazon"]
+
+  filter {
+    name   = "name"
+    values = ["al2023-ami-*-x86_64"]
+  }
+
+  filter {
+    name   = "virtualization-type"
+    values = ["hvm"]
+  }
+}
+
+# EC2 Instance
+resource "aws_instance" "airflow" {
+  ami                    = data.aws_ami.amazon_linux.id
+  instance_type          = "t3.medium"
+  key_name               = aws_key_pair.airflow.key_name
+  vpc_security_group_ids = [aws_security_group.airflow.id]
+
+  root_block_device {
+    volume_size = 20
+    volume_type = "gp3"
+  }
+
+  user_data = <<-EOF
+    #!/bin/bash
+    set -e
+
+    # Swap file (1GB)
+    fallocate -l 1G /swapfile
+    chmod 600 /swapfile
+    mkswap /swapfile
+    swapon /swapfile
+    echo '/swapfile swap swap defaults 0 0' >> /etc/fstab
+
+    # Install Python and dependencies
+    dnf install -y python3.11 python3.11-pip git
+    alternatives --install /usr/bin/python3 python3 /usr/bin/python3.11 1
+
+    # Create airflow user
+    useradd -m -s /bin/bash airflow
+
+    # Install Airflow and dbt
+    export AIRFLOW_HOME=/opt/airflow
+    mkdir -p $AIRFLOW_HOME/dags $AIRFLOW_HOME/logs
+    pip3.11 install apache-airflow==2.10.5 dbt-redshift boto3
+
+    # Initialise Airflow database
+    export AIRFLOW__CORE__LOAD_EXAMPLES=False
+    export AIRFLOW__WEBSERVER__EXPOSE_CONFIG=False
+    airflow db init
+
+    # Create admin user
+    airflow users create \
+      --username admin \
+      --password mYGnUG7JuiCwtaH9uX6HQq93 \
+      --firstname Timi \
+      --lastname Olayinka \
+      --role Admin \
+      --email admin@boohoo.com
+
+    # Set ownership
+    chown -R airflow:airflow $AIRFLOW_HOME
+
+    # Systemd service for Airflow webserver
+    cat > /etc/systemd/system/airflow-webserver.service <<SYSTEMD
+    [Unit]
+    Description=Airflow Webserver
+    After=network.target
+
+    [Service]
+    Environment=AIRFLOW_HOME=/opt/airflow
+    Environment=AIRFLOW__CORE__LOAD_EXAMPLES=False
+    User=airflow
+    ExecStart=/usr/local/bin/airflow webserver --port 8080
+    Restart=always
+
+    [Install]
+    WantedBy=multi-user.target
+    SYSTEMD
+
+    # Systemd service for Airflow scheduler
+    cat > /etc/systemd/system/airflow-scheduler.service <<SYSTEMD
+    [Unit]
+    Description=Airflow Scheduler
+    After=network.target
+
+    [Service]
+    Environment=AIRFLOW_HOME=/opt/airflow
+    Environment=AIRFLOW__CORE__LOAD_EXAMPLES=False
+    User=airflow
+    ExecStart=/usr/local/bin/airflow scheduler
+    Restart=always
+
+    [Install]
+    WantedBy=multi-user.target
+    SYSTEMD
+
+    # Enable and start services
+    systemctl daemon-reload
+    systemctl enable airflow-webserver airflow-scheduler
+    systemctl start airflow-webserver airflow-scheduler
+  EOF
+
+  tags = {
+    Name = "boohoo-airflow"
+  }
+}
+
+# Outputs
+output "airflow_instance_id" {
+  description = "EC2 Instance ID for start/stop commands"
+  value       = aws_instance.airflow.id
+}
+
+output "airflow_public_ip" {
+  description = "Airflow Web UI URL"
+  value       = "http://${aws_instance.airflow.public_ip}:8080"
+}
+
+output "airflow_ssh_private_key" {
+  description = "SSH private key (save this to connect)"
+  value       = tls_private_key.airflow.private_key_pem
+  sensitive   = true
+}
