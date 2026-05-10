@@ -14,7 +14,8 @@ iam = boto3.client("iam")
 lam = boto3.client("lambda")
 
 ROLE_NAME = "BoohooDataGeneratorRole"
-LAMBDA_DIR = "d:/BellosData/aws-data-portfolio/boohoo/lambda"
+SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+LAMBDA_DIR = os.path.join(SCRIPT_DIR, "..", "lambda")
 SHARED_DIR = os.path.join(LAMBDA_DIR, "shared")
 
 def get_or_create_role():
