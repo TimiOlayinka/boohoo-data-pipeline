@@ -12,9 +12,9 @@ jobs:
         env:
           TITLE: ${{ github.event.pull_request.title }}
         run: |
-          if [[ ! "$TITLE" =~ ^DATA-[0-9]+/[A-Za-z0-9_]+$ ]]; then
-            echo "❌ Error: Pull Request title must strictly follow the format 'DATA-<number>/<description_with_underscores>'"
-            echo "   Example: 'DATA-10/cron_based_orchestration'"
+          if [[ ! "$TITLE" =~ ^DATA-[0-9]+.*$ ]]; then
+            echo "❌ Error: Pull Request title must start with 'DATA-<number>'"
+            echo "   Examples: 'DATA-10: Add cron based orchestration', 'DATA-11 - SSM Sync'"
             exit 1
           fi
           echo "✅ PR Title matches the required format."

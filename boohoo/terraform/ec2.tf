@@ -118,6 +118,11 @@ resource "aws_iam_role_policy" "airflow_ec2_policy" {
   })
 }
 
+resource "aws_iam_role_policy_attachment" "airflow_ssm_policy" {
+  role       = aws_iam_role.airflow_ec2_role.name
+  policy_arn = "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
+}
+
 resource "aws_iam_instance_profile" "airflow" {
   name = "BoohooAirflowInstanceProfile"
   role = aws_iam_role.airflow_ec2_role.name
