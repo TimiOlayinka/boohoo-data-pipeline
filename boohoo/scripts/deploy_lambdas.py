@@ -5,7 +5,9 @@ import io
 import time
 import json
 
-os.environ.setdefault("AWS_PROFILE", "playEngineer")
+if not os.environ.get("GITHUB_ACTIONS"):
+    os.environ.setdefault("AWS_PROFILE", "playEngineer")
+
 os.environ.setdefault("AWS_DEFAULT_REGION", "eu-west-2")
 
 iam = boto3.client("iam")
