@@ -15,66 +15,57 @@ SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 LAMBDA_DIR = os.path.join(SCRIPT_DIR, "..", "lambda")
 
 def setup_schedule():
-    print(f"Creating/Updating EventBridge Rule: {RULE_NAME}")
-    
-    # Create the rule
-    rule_response = events.put_rule(
-        Name=RULE_NAME,
-        ScheduleExpression=SCHEDULE,
-        State='ENABLED',
-        Description="Daily trigger for Boohoo synthetic data generation Lambdas"
-    )
-    rule_arn = rule_response["RuleArn"]
-    print(f"Rule ARN: {rule_arn}")
-    
-    # Get all lambda function names
     dirs = [d for d in os.listdir(LAMBDA_DIR) if os.path.isdir(os.path.join(LAMBDA_DIR, d))]
-    targets = []
     
     for d in dirs:
         if d in ["shared", "data_generator"]:
             continue
             
         function_name = f"boohoo-{d.replace('_', '-')}"
+        rule_name = f"BoohooDailySchedule_{d}"
         
         try:
             # Get Lambda ARN
             fn_info = lam.get_function(FunctionName=function_name)
             fn_arn = fn_info["Configuration"]["FunctionArn"]
             
-            # Prepare target
-            targets.append({
-                "Id": function_name,
-                "Arn": fn_arn
-            })
+            print(f"Creating/Updating EventBridge Rule: {rule_name}")
+            # Create the rule
+            rule_response = events.put_rule(
+                Name=rule_name,
+                ScheduleExpression=SCHEDULE,
+                State='ENABLED',
+                Description=f"Daily trigger for {function_name}"
+            )
+            rule_arn = rule_response["RuleArn"]
             
             # Grant EventBridge permission to invoke the Lambda
             try:
                 lam.add_permission(
                     FunctionName=function_name,
-                    StatementId=f"AllowEventBridgeInvoke_{RULE_NAME}",
+                    StatementId=f"AllowEventBridgeInvoke",
                     Action="lambda:InvokeFunction",
                     Principal="events.amazonaws.com",
                     SourceArn=rule_arn
                 )
                 print(f"Granted EventBridge invoke permission for {function_name}")
             except lam.exceptions.ResourceConflictException:
-                # Permission already exists
                 pass
+                
+            # Attach target to rule
+            events.put_targets(
+                Rule=rule_name,
+                Targets=[{
+                    "Id": function_name,
+                    "Arn": fn_arn
+                }]
+            )
+            print(f"Successfully attached {function_name} to {rule_name}.")
                 
         except lam.exceptions.ResourceNotFoundException:
             print(f"Warning: Function {function_name} not found in AWS. Skipping.")
             
-    if targets:
-        # Attach targets to rule
-        print(f"Attaching {len(targets)} targets to rule...")
-        events.put_targets(
-            Rule=RULE_NAME,
-            Targets=targets
-        )
-        print("Successfully attached all targets.")
-    else:
-        print("No targets found to attach.")
+    print("Scheduling complete.")
 
 if __name__ == "__main__":
     setup_schedule()
