@@ -144,7 +144,7 @@ resource "aws_instance" "airflow" {
 
   user_data = <<-EOF
     #!/bin/bash
-    # v2 - with DAG sync from GitHub
+    # v3 - with DAG + config sync from GitHub
     set -e
 
     # Swap file (1GB)
@@ -163,12 +163,13 @@ resource "aws_instance" "airflow" {
 
     # Install Airflow and dbt
     export AIRFLOW_HOME=/opt/airflow
-    mkdir -p $AIRFLOW_HOME/dags $AIRFLOW_HOME/logs
-    pip3.11 install apache-airflow==2.10.5 dbt-redshift boto3
+    mkdir -p $AIRFLOW_HOME/dags $AIRFLOW_HOME/logs $AIRFLOW_HOME/config
+    pip3.11 install apache-airflow==2.10.5 dbt-redshift boto3 pyyaml
 
     # Clone the repo to sync DAGs
     git clone https://github.com/TimiOlayinka/boohoo-data-pipeline.git /opt/boohoo-repo
     cp /opt/boohoo-repo/airflow/dags/*.py $AIRFLOW_HOME/dags/
+    cp /opt/boohoo-repo/airflow/config/*.yml $AIRFLOW_HOME/config/
 
     # Create a sync script that runs on every boot
     cat > /usr/local/bin/sync-dags.sh <<'SYNC'
@@ -176,7 +177,8 @@ resource "aws_instance" "airflow" {
     cd /opt/boohoo-repo
     git pull origin main
     cp /opt/boohoo-repo/airflow/dags/*.py /opt/airflow/dags/
-    chown -R airflow:airflow /opt/airflow/dags/
+    cp /opt/boohoo-repo/airflow/config/*.yml /opt/airflow/config/
+    chown -R airflow:airflow /opt/airflow/dags/ /opt/airflow/config/
     SYNC
     chmod +x /usr/local/bin/sync-dags.sh
 
