@@ -148,6 +148,8 @@ resource "aws_instance" "airflow" {
     [Service]
     Environment=AIRFLOW_HOME=/opt/airflow
     Environment=AIRFLOW__CORE__LOAD_EXAMPLES=False
+    Environment=REDSHIFT_PASSWORD=B00h00Dwh!2026x
+    Environment=REDSHIFT_IAM_ROLE=arn:aws:iam::332779204498:role/BoohooDataGeneratorRole
     User=airflow
     ExecStart=/usr/local/bin/airflow webserver --port 8080
     Restart=always
@@ -165,6 +167,8 @@ resource "aws_instance" "airflow" {
     [Service]
     Environment=AIRFLOW_HOME=/opt/airflow
     Environment=AIRFLOW__CORE__LOAD_EXAMPLES=False
+    Environment=REDSHIFT_PASSWORD=B00h00Dwh!2026x
+    Environment=REDSHIFT_IAM_ROLE=arn:aws:iam::332779204498:role/BoohooDataGeneratorRole
     User=airflow
     ExecStart=/usr/local/bin/airflow scheduler
     Restart=always
