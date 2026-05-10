@@ -8,12 +8,13 @@ jobs:
   check-title:
     runs-on: ubuntu-latest
     steps:
-      - name: Check PR Title format (DATA-X_summary)
+      - name: Check PR Title format (DATA-X_description)
         env:
           TITLE: ${{ github.event.pull_request.title }}
         run: |
           if [[ ! "$TITLE" =~ ^DATA-[0-9]+_.*$ ]]; then
-            echo "❌ Error: Pull Request title must follow the format 'DATA-<number>_<summary>' (e.g., DATA-6_sql_formatting)"
+            echo "❌ Error: PR title must follow 'DATA-<number>_<summary>'"
+            echo "   Example: 'DATA-9_IAM_instance_profile_for_Airflow_EC2'"
             exit 1
           fi
           echo "✅ PR Title matches the required format."
