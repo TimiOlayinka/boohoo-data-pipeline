@@ -27,9 +27,9 @@ with DAG(
     tags=["transform", "dbt", "rdl"],
 ) as dag:
 
-    wait_for_ingestion = ExternalTaskSensor(
-        task_id="wait_for_ingestion",
-        external_dag_id="01_ingestion",
+    wait_for_s3_load = ExternalTaskSensor(
+        task_id="wait_for_s3_load",
+        external_dag_id="01b_s3_to_redshift",
         external_task_id=None,  # Wait for entire DAG to complete
         timeout=600,
         poke_interval=30,
@@ -45,4 +45,4 @@ with DAG(
         bash_command=f"cd {DBT_DIR} && dbt test --select tag:rdl --profiles-dir .",
     )
 
-    wait_for_ingestion >> dbt_run_rdl >> dbt_test_rdl
+    wait_for_s3_load >> dbt_run_rdl >> dbt_test_rdl
