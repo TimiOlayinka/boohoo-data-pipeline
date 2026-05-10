@@ -1,4 +1,4 @@
-## DATA-X/description_with_underscores
+## DATA-X: Description
 
 A brief summary of what this PR does.
 
