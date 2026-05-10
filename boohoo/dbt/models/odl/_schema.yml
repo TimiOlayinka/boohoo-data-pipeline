@@ -51,3 +51,89 @@ models:
     columns:
       - name: brand
         tests: [unique, not_null]
+
+  # ── Marketing Dimensions ─────────────────────────────────────────────
+  - name: dim_marketing_channels
+    description: "Marketing channel hierarchy — L1/L2/L3 (odl)"
+    columns:
+      - name: channel_l2
+        tests: [not_null]
+
+  - name: dim_campaigns
+    description: "Unified campaign dimension across ad platforms (odl)"
+    columns:
+      - name: campaign_sk
+        tests: [unique, not_null]
+      - name: platform
+        tests:
+          - accepted_values:
+              values: ['Meta Ads', 'Google Ads', 'TikTok Ads']
+
+  # ── Marketing Maps ──────────────────────────────────────────────────
+  - name: map_channel_grouping
+    description: "Google Ads channel type → channel group mapping (odl)"
+
+  - name: map_utm_sources
+    description: "UTM source/medium → traffic source hierarchy mapping (odl)"
+
+  # ── Marketing Facts ─────────────────────────────────────────────────
+  - name: fact_meta_campaign_insights
+    description: "Meta Ads campaign insights fact (odl)"
+    columns:
+      - name: meta_insight_sk
+        tests: [not_null]
+      - name: brand
+        tests:
+          - accepted_values:
+              values: ['Boohoo','Boohoo Man','PrettyLittleThing','NastyGal','Karen Millen','Coast','Debenhams']
+      - name: spend
+        tests:
+          - dbt_utils.accepted_range:
+              min_value: 0
+
+  - name: fact_google_ads_performance
+    description: "Google Ads performance fact with channel classification (odl)"
+    columns:
+      - name: google_ads_sk
+        tests: [not_null]
+      - name: spend
+        tests:
+          - dbt_utils.accepted_range:
+              min_value: 0
+
+  - name: fact_tiktok_ad_insights
+    description: "TikTok Ads insights fact with video engagement (odl)"
+    columns:
+      - name: tiktok_ad_sk
+        tests: [not_null]
+      - name: spend
+        tests:
+          - dbt_utils.accepted_range:
+              min_value: 0
+
+  - name: fact_ga4_sessions
+    description: "GA4 web session fact with traffic source mapping (odl)"
+    columns:
+      - name: session_sk
+        tests: [unique, not_null]
+      - name: revenue
+        tests:
+          - dbt_utils.accepted_range:
+              min_value: 0
+
+  - name: fact_email_engagement
+    description: "Email campaign engagement fact (odl)"
+    columns:
+      - name: email_engagement_sk
+        tests: [not_null]
+
+  - name: fact_influencer_performance
+    description: "Influencer post performance fact with ROI metrics (odl)"
+    columns:
+      - name: influencer_sk
+        tests: [unique, not_null]
+      - name: cost
+        tests:
+          - dbt_utils.accepted_range:
+              min_value: 0
+

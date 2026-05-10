@@ -29,9 +29,13 @@ models:
         +schema: rdl_magento
       oracle_commerce:
         +schema: rdl_oracle_commerce
+      marketing:
+        +schema: rdl_marketing
+        +tags: ['marketing']
     odl:
       +materialized: table
       +schema: odl
     adl:
       +materialized: table
       +schema: bi
+
