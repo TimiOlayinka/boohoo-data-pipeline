@@ -156,7 +156,6 @@ resource "aws_instance" "airflow" {
 
     # Install Python and dependencies
     dnf install -y python3.11 python3.11-pip git
-    alternatives --install /usr/bin/python3 python3 /usr/bin/python3.11 1
 
     # Create airflow user
     useradd -m -s /bin/bash airflow
@@ -200,10 +199,10 @@ resource "aws_instance" "airflow" {
     # Initialise Airflow database
     export AIRFLOW__CORE__LOAD_EXAMPLES=False
     export AIRFLOW__WEBSERVER__EXPOSE_CONFIG=False
-    airflow db init
+    /usr/local/bin/airflow db init
 
     # Create admin user
-    airflow users create \
+    /usr/local/bin/airflow users create \
       --username admin \
       --password mYGnUG7JuiCwtaH9uX6HQq93 \
       --firstname Timi \
