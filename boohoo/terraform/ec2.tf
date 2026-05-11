@@ -265,6 +265,16 @@ resource "aws_instance" "airflow" {
   }
 }
 
+# Elastic IP for persistent address across stop/start cycles
+resource "aws_eip" "airflow" {
+  domain   = "vpc"
+  instance = aws_instance.airflow.id
+
+  tags = {
+    Name = "boohoo-airflow-eip"
+  }
+}
+
 # Outputs
 output "airflow_instance_id" {
   description = "EC2 Instance ID for start/stop commands"
@@ -272,8 +282,8 @@ output "airflow_instance_id" {
 }
 
 output "airflow_public_ip" {
-  description = "Airflow Web UI URL"
-  value       = "http://${aws_instance.airflow.public_ip}:8080"
+  description = "Airflow Web UI URL (static Elastic IP)"
+  value       = "http://${aws_eip.airflow.public_ip}:8080"
 }
 
 output "airflow_ssh_private_key" {
