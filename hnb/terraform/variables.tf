@@ -25,6 +25,7 @@ variable "redshift_admin_password" {
   description = "Redshift Serverless admin password"
   type        = string
   sensitive   = true
+  default     = "HnbDataWarehouse2026!"
 }
 
 variable "parquet_export_bucket" {
