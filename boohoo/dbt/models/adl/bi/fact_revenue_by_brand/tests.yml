@@ -1,9 +1,0 @@
-duplicate_tests: []
-gap_tests:
-- name: no_missing_ingest_date
-  description: No gaps in ingest_date coverage
-  enabled: true
-  schedule: daily
-  field:
-  - ingest_date
-  severity: warning

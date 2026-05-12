@@ -9,14 +9,14 @@ import boto3
 import os
 from datetime import datetime
 
-S3_BUCKET = os.environ.get("PARQUET_BUCKET", "boohoo-data-quality-staging")
+S3_BUCKET = os.environ.get("PARQUET_BUCKET", "hnb-data-quality-staging")
 S3_REGION = os.environ.get("AWS_REGION", "eu-west-2")
 LOCAL_CACHE = os.environ.get("PARQUET_CACHE", os.path.join(os.path.dirname(__file__), "..", ".cache"))
 
 LAYERS = {
     "rdl": [
-        "boohoo_orders", "boohoo_customers", "boohoo_products",
-        "boohoo_man_orders", "boohoo_man_customers", "boohoo_man_products",
+        "hnb_orders", "hnb_customers", "hnb_products",
+        "hnb_man_orders", "hnb_man_customers", "hnb_man_products",
         "plt_orders", "plt_customers", "plt_products",
         "nastygal_orders", "nastygal_customers", "nastygal_products",
         "karen_millen_orders", "karen_millen_customers", "karen_millen_products",

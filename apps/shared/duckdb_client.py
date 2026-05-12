@@ -8,7 +8,7 @@ a clean query interface for the BI dashboards.
 import duckdb
 import os
 
-S3_BUCKET = os.environ.get("PARQUET_BUCKET", "boohoo-data-quality-staging")
+S3_BUCKET = os.environ.get("PARQUET_BUCKET", "hnb-data-quality-staging")
 S3_REGION = os.environ.get("AWS_REGION", "eu-west-2")
 LOCAL_CACHE = os.environ.get("PARQUET_CACHE", os.path.join(os.path.dirname(__file__), "..", ".cache"))
 

@@ -4,21 +4,21 @@
 # ─────────────────────────────────────────────────────────────────
 
 settings:
-  bucket: boohoo-dns-rdl-staging
+  bucket: hnb-dns-rdl-staging
   iam_role: ${REDSHIFT_IAM_ROLE}
   workgroup: bellosdata
-  database: boohoo_dwh
+  database: hnb_dwh
   region: eu-west-2
 
 sources:
 
-  # ── Boohoo Commerce (Custom Platform) ──────────────────────────
-  boohoo_commerce:
-    schema: rdl_boohoo_commerce
+  # ── HNB Commerce (Custom Platform) ──────────────────────────
+  hnb_commerce:
+    schema: rdl_hnb_commerce
     brands:
-      boohoo:
+      hnb:
         datasets: [customers, products, orders, order_items]
-      boohoo_man:
+      hnb_man:
         datasets: [customers, products, orders, order_items]
 
   # ── Salesforce Commerce Cloud (PLT) ────────────────────────────
@@ -56,9 +56,9 @@ sources:
   marketing:
     schema: rdl_marketing
     brands:
-      boohoo:
+      hnb:
         datasets: [meta_ads, google_ads, tiktok_ads, ga4_sessions, email_campaigns, influencer_posts]
-      boohoo_man:
+      hnb_man:
         datasets: [meta_ads, google_ads, tiktok_ads, ga4_sessions, email_campaigns, influencer_posts]
       prettylittlething:
         datasets: [meta_ads, google_ads, tiktok_ads, ga4_sessions, email_campaigns, influencer_posts]

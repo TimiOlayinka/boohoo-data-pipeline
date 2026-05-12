@@ -1,6 +1,6 @@
 """
 DAG 1: Ingestion Layer
-Triggers all 9 Lambda micro-services to generate synthetic data into S3.
+Triggers all 5 Lambda micro-services to generate synthetic CX and Supply Chain data into S3.
 """
 from datetime import datetime, timedelta
 from airflow import DAG
@@ -17,19 +17,15 @@ default_args = {
 
 REGION = "eu-west-2"
 
-ECOMMERCE_LAMBDAS = [
-    "boohoo-ecommerce-customers",
-    "boohoo-ecommerce-orders",
-    "boohoo-ecommerce-products",
+CX_LAMBDAS = [
+    "hnb-cx-tickets",
+    "hnb-cx-surveys",
 ]
 
-MARKETING_LAMBDAS = [
-    "boohoo-marketing-meta-ads",
-    "boohoo-marketing-google-ads",
-    "boohoo-marketing-tiktok-ads",
-    "boohoo-marketing-ga4-sessions",
-    "boohoo-marketing-email-campaigns",
-    "boohoo-marketing-influencers",
+SUPPLY_CHAIN_LAMBDAS = [
+    "hnb-supply-chain-warehouse",
+    "hnb-supply-chain-deliveries",
+    "hnb-supply-chain-otif",
 ]
 
 
@@ -56,21 +52,21 @@ with DAG(
     tags=["ingestion", "lambda", "s3"],
 ) as dag:
 
-    with TaskGroup("ecommerce_data") as ecommerce_group:
-        for fn in ECOMMERCE_LAMBDAS:
+    with TaskGroup("cx_data") as cx_group:
+        for fn in CX_LAMBDAS:
             PythonOperator(
-                task_id=f"generate_{fn.replace('boohoo-', '').replace('-', '_')}",
+                task_id=f"generate_{fn.replace('hnb-', '').replace('-', '_')}",
                 python_callable=invoke_lambda,
                 op_kwargs={"function_name": fn},
             )
 
-    with TaskGroup("marketing_data") as marketing_group:
-        for fn in MARKETING_LAMBDAS:
+    with TaskGroup("supply_chain_data") as supply_chain_group:
+        for fn in SUPPLY_CHAIN_LAMBDAS:
             PythonOperator(
-                task_id=f"generate_{fn.replace('boohoo-', '').replace('-', '_')}",
+                task_id=f"generate_{fn.replace('hnb-', '').replace('-', '_')}",
                 python_callable=invoke_lambda,
                 op_kwargs={"function_name": fn},
             )
 
-    # Ecommerce and Marketing run in parallel
-    [ecommerce_group, marketing_group]
+    # CX and Supply Chain run in parallel
+    [cx_group, supply_chain_group]
