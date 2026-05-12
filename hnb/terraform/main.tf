@@ -11,7 +11,7 @@ terraform {
   }
 
   backend "s3" {
-    bucket = "hnb-terraform-state-332779204498"
+    bucket = "boohoo-terraform-state-332779204498"
     key    = "terraform.tfstate"
     region = "eu-west-2"
   }
