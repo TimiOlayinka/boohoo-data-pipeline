@@ -7,15 +7,7 @@ output "s3_rdl_bucket" {
   value       = aws_s3_bucket.rdl_staging.bucket
 }
 
-output "redshift_endpoint" {
-  description = "Redshift Serverless endpoint"
-  value       = data.aws_redshiftserverless_workgroup.hnb.endpoint[0].address
-}
 
-output "redshift_namespace" {
-  description = "Redshift Serverless namespace"
-  value       = data.aws_redshiftserverless_namespace.hnb.namespace_name
-}
 
 output "lambda_function_names" {
   description = "Names of all deployed Lambda functions"
