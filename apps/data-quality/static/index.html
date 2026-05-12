@@ -41,6 +41,11 @@
     <!-- Lineage Tab -->
     <section id="tab-lineage" class="tab-panel active">
         <div class="lineage-container">
+            <div class="lineage-filters">
+                <span id="lineage-domain-filter"></span>
+                <span id="lineage-status-filter"></span>
+                <span id="lineage-attention-filter"></span>
+            </div>
             <canvas id="lineage-canvas"></canvas>
             <div class="lineage-legend">
                 <span><span class="dot source"></span>Source</span>
@@ -51,6 +56,8 @@
                 <span><span class="dot status-pass"></span>Pass</span>
                 <span><span class="dot status-warn"></span>Warn</span>
                 <span><span class="dot status-fail"></span>Fail</span>
+                <span class="legend-sep">|</span>
+                <span style="color:var(--text-muted);font-size:11px">Click to highlight · Click again to focus · ESC to reset</span>
             </div>
         </div>
     </section>

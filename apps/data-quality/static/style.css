@@ -122,6 +122,10 @@ body {
 
 /* ─── Lineage Canvas ─── */
 .lineage-container { position: relative; }
+.lineage-filters {
+    display: flex; gap: 8px; align-items: center;
+    padding: 0 0 12px 0;
+}
 #lineage-canvas {
     width: 100%; height: 520px;
     background: var(--glass); border: 1px solid var(--glass-border);

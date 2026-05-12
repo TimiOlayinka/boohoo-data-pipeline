@@ -41,47 +41,61 @@ function renderBadges(s){
     document.getElementById('badge-fail').innerHTML=`\u2715 ${s.tests_fail} Fail`;
 }
 
-// ─── Domain Filter ───
+// ─── Shared Filter Rendering (populates both lineage + quality tabs) ───
+
 function renderDomainFilter(domains){
-    const wrap=document.getElementById('domain-filter');
-    if(!wrap) return;
-    wrap.innerHTML=`<select id="domain-select" class="domain-select">
-        <option value="all">All Domains</option>
-        ${domains.map(d=>`<option value="${d}">${d}</option>`).join('')}
-    </select>`;
-    document.getElementById('domain-select').addEventListener('change',e=>{
-        activeDomain=e.target.value; filterTable(); filterLineageByDomain();
+    const ids=['domain-filter','lineage-domain-filter'];
+    ids.forEach(id=>{
+        const wrap=document.getElementById(id);
+        if(!wrap) return;
+        const sel=document.createElement('select');
+        sel.className='domain-select';
+        sel.innerHTML=`<option value="all">All Domains</option>${domains.map(d=>`<option value="${d}">${d}</option>`).join('')}`;
+        sel.addEventListener('change',e=>{
+            activeDomain=e.target.value;
+            // sync the other dropdown
+            document.querySelectorAll('.domain-select').forEach(s=>{if(s!==e.target)s.value=activeDomain;});
+            filterTable(); filterLineageByDomain();
+        });
+        wrap.innerHTML=''; wrap.appendChild(sel);
     });
 }
 
 function renderStatusFilter(){
-    const wrap=document.getElementById('status-filter');
-    if(!wrap) return;
-    wrap.innerHTML=`<select id="status-select" class="domain-select">
-        <option value="all">All Statuses</option>
-        <option value="pass">✓ Passing</option>
-        <option value="warn">▲ Warnings</option>
-        <option value="fail">✕ Failing</option>
-    </select>`;
-    document.getElementById('status-select').addEventListener('change',e=>{
-        activeStatus=e.target.value; filterTable(); filterLineageByDomain();
+    const ids=['status-filter','lineage-status-filter'];
+    ids.forEach(id=>{
+        const wrap=document.getElementById(id);
+        if(!wrap) return;
+        const sel=document.createElement('select');
+        sel.className='domain-select status-select-el';
+        sel.innerHTML=`<option value="all">All Statuses</option><option value="pass">\u2713 Passing</option><option value="warn">\u25B2 Warnings</option><option value="fail">\u2715 Failing</option>`;
+        sel.addEventListener('change',e=>{
+            activeStatus=e.target.value;
+            document.querySelectorAll('.status-select-el').forEach(s=>{if(s!==e.target)s.value=activeStatus;});
+            filterTable(); filterLineageByDomain();
+        });
+        wrap.innerHTML=''; wrap.appendChild(sel);
     });
 }
 
 function renderAttentionFilter(){
-    const wrap=document.getElementById('attention-filter');
-    if(!wrap) return;
     const failCount=allModels.filter(m=>m.status==='fail').length;
     const warnCount=allModels.filter(m=>m.status==='warn').length;
     const attentionCount=failCount+warnCount;
-    wrap.innerHTML=`<button id="attention-btn" class="attention-btn" title="Show models that need attention">
-        ⚠ Needs Attention <span class="attention-count">${attentionCount}</span>
-    </button>`;
-    document.getElementById('attention-btn').addEventListener('click',e=>{
-        const btn=e.currentTarget;
-        btn.classList.toggle('active');
-        activeAttention=btn.classList.contains('active');
-        filterTable(); filterLineageByDomain();
+    const ids=['attention-filter','lineage-attention-filter'];
+    ids.forEach(id=>{
+        const wrap=document.getElementById(id);
+        if(!wrap) return;
+        const btn=document.createElement('button');
+        btn.className='attention-btn';
+        btn.title='Show models that need attention';
+        btn.innerHTML=`\u26A0 Needs Attention <span class="attention-count">${attentionCount}</span>`;
+        btn.addEventListener('click',()=>{
+            activeAttention=!activeAttention;
+            document.querySelectorAll('.attention-btn').forEach(b=>b.classList.toggle('active',activeAttention));
+            filterTable(); filterLineageByDomain();
+        });
+        wrap.innerHTML=''; wrap.appendChild(btn);
     });
 }
 
