@@ -1,7 +1,7 @@
 """
 DAG 2: RDL (Raw Data Layer)
 Runs dbt models tagged with 'rdl' to load and deduplicate raw source data.
-Source systems: Boohoo Commerce, Salesforce, Shopify, Magento, Oracle Commerce
+Source systems: HNB Commerce, Salesforce, Shopify, Magento, Oracle Commerce
 """
 from datetime import datetime, timedelta
 from airflow import DAG

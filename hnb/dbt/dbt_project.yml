@@ -1,0 +1,41 @@
+name: 'hnb_dwh'
+version: '1.0.0'
+
+profile: 'hnb_dwh'
+
+model-paths: ["models"]
+analysis-paths: ["analyses"]
+test-paths: ["tests"]
+seed-paths: ["seeds"]
+macro-paths: ["macros"]
+snapshot-paths: ["snapshots"]
+
+clean-targets:
+  - "target"
+  - "dbt_packages"
+
+models:
+  hnb_dwh:
+    rdl:
+      +materialized: view
+      +schema: rdl
+      zendesk:
+        +schema: rdl_zendesk
+      qualtrics:
+        +schema: rdl_qualtrics
+      manhattan:
+        +schema: rdl_manhattan
+      metapack:
+        +schema: rdl_metapack
+      hnb_commerce:
+        +schema: rdl_hnb_commerce
+    odl:
+      +materialized: table
+      +schema: odl
+    adl:
+      +materialized: table
+      +schema: bi
+    unit_test:
+      +materialized: table
+      +schema: unit_test
+      +tags: ['quality']

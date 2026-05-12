@@ -1,5 +1,5 @@
 <p align="center">
-  <h1 align="center">Boohoo Group — Enterprise Data Pipeline</h1>
+  <h1 align="center">HNB Group — Enterprise Data Pipeline</h1>
   <p align="center">
     <strong>End-to-end data platform built on AWS, orchestrated with Airflow, deployed with Terraform, transformed with dbt, and visualised in Looker Studio.</strong>
   </p>
@@ -19,7 +19,7 @@
 
 ## Architecture Overview
 
-This project simulates a **production-grade marketing analytics platform** for Boohoo Group — a multi-brand fashion conglomerate operating 7 brands across 5 different e-commerce platforms. The entire cloud environment is defined as **Infrastructure as Code** using Terraform, orchestrated by **Apache Airflow**, deployed via **GitHub Actions CI/CD**, and follows a **three-layer data warehouse** pattern (RDL → ODL → ADL).
+This project simulates a **production-grade marketing analytics platform** for HNB Group — a multi-brand fashion conglomerate operating 7 brands across 5 different e-commerce platforms. The entire cloud environment is defined as **Infrastructure as Code** using Terraform, orchestrated by **Apache Airflow**, deployed via **GitHub Actions CI/CD**, and follows a **three-layer data warehouse** pattern (RDL → ODL → ADL).
 
 ```mermaid
 flowchart LR
@@ -101,7 +101,7 @@ aws-data-portfolio/
 │       ├── 03_transform_odl.py        # dbt run — ODL layer
 │       └── 04_transform_adl.py        # dbt run — ADL layer
 │
-├── boohoo/
+├── hnb/
 │   ├── lambda/                        # 11 independent Lambda functions
 │   │   ├── ecommerce_customers/       # Customer data generator
 │   │   ├── ecommerce_orders/          # Order & order item generator
@@ -136,7 +136,7 @@ aws-data-portfolio/
 │   ├── dbt/                           # Data transformation layer
 │   │   ├── models/
 │   │   │   ├── rdl/                   # Raw Data Layer (27 models)
-│   │   │   │   ├── boohoo_commerce/   #   Boohoo & BoohooMAN (6 models)
+│   │   │   │   ├── hnb_commerce/   #   HNB & HNBMAN (6 models)
 │   │   │   │   ├── salesforce_commerce/ # PrettyLittleThing (3 models)
 │   │   │   │   ├── shopify/           #   NastyGal (3 models)
 │   │   │   │   ├── magento/           #   Karen Millen & Coast (6 models)
@@ -169,7 +169,7 @@ The warehouse follows an enterprise **RDL → ODL → ADL** pattern:
 flowchart TB
     subgraph RDL["RDL — Raw Data Layer"]
         direction LR
-        R1["Boohoo Commerce"]
+        R1["HNB Commerce"]
         R2["Salesforce Commerce"]
         R3["Shopify"]
         R4["Magento"]
@@ -240,8 +240,8 @@ This pipeline simulates a real-world enterprise challenge: **7 acquired brands**
 
 | Brand | Source System | ID Field | Price Field |
 |-------|-------------|----------|------------|
-| **Boohoo** | Boohoo Commerce | `sku` | `selling_price` |
-| **BoohooMAN** | Boohoo Commerce | `sku` | `selling_price` |
+| **HNB** | HNB Commerce | `sku` | `selling_price` |
+| **HNBMAN** | HNB Commerce | `sku` | `selling_price` |
 | **PrettyLittleThing** | Salesforce Commerce | `product_id` | `price_book_price` |
 | **NastyGal** | Shopify | `variant_id` | `price` |
 | **Karen Millen** | Magento | `entity_id` | `price` |
@@ -320,7 +320,7 @@ All AWS resources are declaratively managed via Terraform with remote state stor
 | Resource | Terraform File | Description |
 |----------|---------------|-------------|
 | AWS Provider & S3 Backend | `main.tf` | Provider config, remote state |
-| IAM Roles | `iam.tf` | `BoohooDataGeneratorRole` with Lambda & S3 permissions |
+| IAM Roles | `iam.tf` | `HNBDataGeneratorRole` with Lambda & S3 permissions |
 | 9 Lambda Functions | `lambdas.tf` | Micro-service data generators using `for_each` |
 | Airflow EC2 Instance | `ec2.tf` | Instance, security group, IAM role, bootstrap script |
 | EC2 Auto Scheduler | `ec2_scheduler.tf` | Start/stop Lambdas + EventBridge cron rules |
@@ -334,8 +334,8 @@ All AWS resources are declaratively managed via Terraform with remote state stor
 ## S3 Data Lake Structure
 
 ```
-s3://boohoo-dns-rdl-staging/
-├── boohoo/boohoo_commerce/
+s3://hnb-dns-rdl-staging/
+├── hnb/hnb_commerce/
 │   ├── customers/history/ingest_date=2026-05-09/customers.jsonl.gz
 │   ├── products/history/ingest_date=2026-05-09/products.jsonl.gz
 │   ├── orders/history/ingest_date=2026-05-09/orders.jsonl.gz
@@ -387,14 +387,14 @@ Branch protection rules enforce that **all changes must go through a Pull Reques
 
 ```bash
 # Clone
-git clone https://github.com/TimiOlayinka/boohoo-data-pipeline.git
-cd boohoo-data-pipeline
+git clone https://github.com/TimiOlayinka/hnb-data-pipeline.git
+cd hnb-data-pipeline
 
 # Build Lambda packages
-python boohoo/scripts/build_zips.py
+python hnb/scripts/build_zips.py
 
 # Deploy infrastructure (requires AWS credentials)
-cd boohoo/terraform
+cd hnb/terraform
 terraform init
 terraform plan
 terraform apply

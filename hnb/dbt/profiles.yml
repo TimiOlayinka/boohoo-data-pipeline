@@ -1,0 +1,12 @@
+hnb_dwh:
+  target: dev
+  outputs:
+    dev:
+      type: redshift
+      host: bellosdata.332779204498.eu-west-2.redshift-serverless.amazonaws.com
+      port: 5439
+      user: admin
+      password: "{{ env_var('REDSHIFT_PASSWORD') }}"
+      dbname: hnb_dwh
+      schema: public
+      threads: 4

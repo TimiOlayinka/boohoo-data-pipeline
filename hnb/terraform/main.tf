@@ -1,0 +1,30 @@
+terraform {
+  required_providers {
+    aws = {
+      source  = "hashicorp/aws"
+      version = "~> 5.0"
+    }
+    tls = {
+      source  = "hashicorp/tls"
+      version = "~> 4.0"
+    }
+  }
+
+  backend "s3" {
+    bucket = "hnb-terraform-state-332779204498"
+    key    = "terraform.tfstate"
+    region = "eu-west-2"
+  }
+}
+
+provider "aws" {
+  region = "eu-west-2"
+  
+  default_tags {
+    tags = {
+      Project     = "HNBDataPipeline"
+      Environment = "Production"
+      ManagedBy   = "Terraform"
+    }
+  }
+}
