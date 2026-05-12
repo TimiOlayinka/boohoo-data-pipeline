@@ -29,14 +29,14 @@ jobs:
       - name: Start Airflow Server
         run: |
           INSTANCE_ID=$(aws ec2 describe-instances \
-            --filters "Name=tag:Name,Values=boohoo-airflow" "Name=instance-state-name,Values=stopped" \
+            --filters "Name=tag:Name,Values=hnb-airflow" "Name=instance-state-name,Values=stopped" \
             --query "Reservations[0].Instances[0].InstanceId" \
             --output text)
 
           if [ "$INSTANCE_ID" = "None" ] || [ -z "$INSTANCE_ID" ]; then
             echo "Instance not found or already running!"
             INSTANCE_ID=$(aws ec2 describe-instances \
-              --filters "Name=tag:Name,Values=boohoo-airflow" "Name=instance-state-name,Values=running" \
+              --filters "Name=tag:Name,Values=hnb-airflow" "Name=instance-state-name,Values=running" \
               --query "Reservations[0].Instances[0].InstanceId" \
               --output text)
           else
