@@ -1,0 +1,80 @@
+# ─────────────────────────────────────────────────────────────────
+# Redshift → S3 Parquet Export Configuration
+# Each model maps to an UNLOAD SQL statement.
+# The DAG reads this file and submits each SQL to Redshift Data API.
+# ─────────────────────────────────────────────────────────────────
+
+settings:
+  workgroup: bellosdata
+  database: boohoo_dwh
+  iam_role: ${REDSHIFT_IAM_ROLE}
+  s3_bucket: boohoo-data-quality-staging
+  region: eu-west-2
+
+exports:
+
+  # ── RDL Layer ──────────────────────────────────────────────────
+  rdl:
+    models:
+      - schema: rdl_boohoo_commerce
+        tables: [boohoo_orders, boohoo_customers, boohoo_products, boohoo_man_orders, boohoo_man_customers, boohoo_man_products]
+        filter: "WHERE is_latest"
+
+      - schema: rdl_salesforce_commerce
+        tables: [plt_orders, plt_customers, plt_products]
+        filter: "WHERE is_latest"
+
+      - schema: rdl_shopify
+        tables: [nastygal_orders, nastygal_customers, nastygal_products]
+        filter: "WHERE is_latest"
+
+      - schema: rdl_magento
+        tables: [karen_millen_orders, karen_millen_customers, karen_millen_products, coast_orders, coast_customers, coast_products]
+        filter: "WHERE is_latest"
+
+      - schema: rdl_oracle_commerce
+        tables: [debenhams_orders, debenhams_customers, debenhams_products]
+        filter: "WHERE is_latest"
+
+      - schema: rdl_marketing
+        tables: [rdl_meta_ads, rdl_google_ads, rdl_tiktok_ads, rdl_ga4_sessions, rdl_email_campaigns, rdl_influencer_posts]
+        filter: "WHERE is_latest"
+
+  # ── ODL Layer ──────────────────────────────────────────────────
+  odl:
+    models:
+      - schema: odl
+        tables:
+          - dim_customers
+          - dim_products
+          - dim_time
+          - dim_campaigns
+          - dim_marketing_channels
+          - fact_orders
+          - fact_meta_campaign_insights
+          - fact_google_ads_performance
+          - fact_tiktok_ad_insights
+          - fact_ga4_sessions
+          - fact_email_engagement
+          - fact_influencer_performance
+          - map_brand
+          - map_utm_sources
+          - map_channel_grouping
+
+  # ── ADL Layer ──────────────────────────────────────────────────
+  adl:
+    models:
+      - schema: bi
+        tables:
+          - fact_marketing_summary
+          - fact_funnel_metrics
+          - fact_marketing_roas
+          - fact_marketing_spend_daily
+          - fact_channel_performance
+          - fact_campaign_performance
+          - fact_daily_sales
+          - fact_revenue_by_brand
+          - fact_product_performance
+          - fact_customer_segments
+          - fact_email_performance
+          - fact_influencer_roi

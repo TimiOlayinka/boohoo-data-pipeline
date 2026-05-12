@@ -38,4 +38,7 @@ models:
     adl:
       +materialized: table
       +schema: bi
-
+    unit_test:
+      +materialized: table
+      +schema: unit_test
+      +tags: ['quality']

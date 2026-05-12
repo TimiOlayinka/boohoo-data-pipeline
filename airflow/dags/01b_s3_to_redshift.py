@@ -67,7 +67,7 @@ with DAG(
     dag_id="01b_s3_to_redshift",
     default_args=default_args,
     description="YAML-driven S3 → Redshift loader with TaskGroups per source system",
-    schedule_interval="20 1 * * *",
+    schedule_interval="20 1 * * 1,3,5",  # Mon/Wed/Fri,
     start_date=datetime(2026, 5, 1),
     catchup=False,
     tags=["ingestion", "redshift", "copy"],

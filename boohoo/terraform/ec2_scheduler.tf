@@ -85,11 +85,11 @@ resource "aws_lambda_function" "ec2_stop" {
   }
 }
 
-# EventBridge: Start at 1:00 AM UTC
+# EventBridge: Start at 1:00 AM UTC on Mon/Wed/Fri only
 resource "aws_cloudwatch_event_rule" "ec2_start_schedule" {
   name                = "BoohooAirflowStart"
-  description         = "Start Airflow EC2 at 1:00 AM UTC"
-  schedule_expression = "cron(0 1 * * ? *)"
+  description         = "Start Airflow EC2 at 1:00 AM UTC Mon/Wed/Fri"
+  schedule_expression = "cron(0 1 ? * MON,WED,FRI *)"
 }
 
 resource "aws_cloudwatch_event_target" "ec2_start_target" {
@@ -106,11 +106,11 @@ resource "aws_lambda_permission" "allow_eventbridge_start" {
   source_arn    = aws_cloudwatch_event_rule.ec2_start_schedule.arn
 }
 
-# EventBridge: Stop at 4:00 AM UTC
+# EventBridge: Stop at 3:00 AM UTC on Mon/Wed/Fri (pipeline finishes ~02:30)
 resource "aws_cloudwatch_event_rule" "ec2_stop_schedule" {
   name                = "BoohooAirflowStop"
-  description         = "Stop Airflow EC2 at 4:00 AM UTC"
-  schedule_expression = "cron(0 4 * * ? *)"
+  description         = "Stop Airflow EC2 at 3:00 AM UTC Mon/Wed/Fri"
+  schedule_expression = "cron(0 3 ? * MON,WED,FRI *)"
 }
 
 resource "aws_cloudwatch_event_target" "ec2_stop_target" {

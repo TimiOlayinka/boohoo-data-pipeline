@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Data Quality & Lineage | Boohoo DWH</title>
+    <meta name="description" content="Interactive data quality monitoring and lineage explorer for the Boohoo Group data warehouse.">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/style.css?v=4">
+</head>
+<body>
+<div class="gradient-bg"></div>
+
+<!-- ─── Header ─── -->
+<header class="header">
+    <div class="header-left">
+        <h1 id="app-title">⚡ Data Quality <span class="gradient-text">& Lineage</span></h1>
+        <div class="header-sub">Boohoo Group — Agentic Data Warehouse</div>
+    </div>
+    <div class="header-right">
+        <span class="badge badge-pass" id="badge-pass">● 0 Pass</span>
+        <span class="badge badge-warn" id="badge-warn">▲ 0 Warn</span>
+        <span class="badge badge-fail" id="badge-fail">✕ 0 Fail</span>
+        <div class="refresh-time">Last refresh: <span id="refresh-time">—</span></div>
+    </div>
+</header>
+
+<!-- ─── KPI Strip ─── -->
+<div class="kpi-strip" id="kpis"></div>
+
+<!-- ─── Navigation Tabs ─── -->
+<nav class="tabs">
+    <button class="tab active" data-tab="lineage">🔗 Lineage</button>
+    <button class="tab" data-tab="quality">🛡️ Quality</button>
+    <button class="tab" data-tab="costs">💰 Costs</button>
+</nav>
+
+<!-- ─── Tab Content ─── -->
+<main class="content">
+
+    <!-- Lineage Tab -->
+    <section id="tab-lineage" class="tab-panel active">
+        <div class="lineage-container">
+            <div class="lineage-filters">
+                <span id="lineage-domain-filter"></span>
+                <span id="lineage-status-filter"></span>
+                <span id="lineage-attention-filter"></span>
+            </div>
+            <canvas id="lineage-canvas"></canvas>
+            <div class="lineage-legend">
+                <span><span class="dot source"></span>Source</span>
+                <span><span class="dot rdl"></span>RDL</span>
+                <span><span class="dot odl"></span>ODL</span>
+                <span><span class="dot adl"></span>ADL</span>
+                <span class="legend-sep">|</span>
+                <span><span class="dot status-pass"></span>Pass</span>
+                <span><span class="dot status-warn"></span>Warn</span>
+                <span><span class="dot status-fail"></span>Fail</span>
+                <span class="legend-sep">|</span>
+                <span style="color:var(--text-muted);font-size:11px">Click to highlight · Click again to focus · ESC to reset</span>
+            </div>
+        </div>
+    </section>
+
+    <!-- Quality Tab -->
+    <section id="tab-quality" class="tab-panel">
+        <div class="layer-filters">
+            <button class="filter-btn active" data-filter="all">All Layers</button>
+            <button class="filter-btn" data-filter="rdl">RDL</button>
+            <button class="filter-btn" data-filter="odl">ODL</button>
+            <button class="filter-btn" data-filter="adl">ADL</button>
+            <span class="legend-sep">|</span>
+            <span id="domain-filter"></span>
+            <span id="status-filter"></span>
+            <span id="attention-filter"></span>
+            <div class="search-wrap">
+                <input type="text" id="model-search" placeholder="Search models..." class="search-input">
+            </div>
+        </div>
+        <div id="quality-table-wrap"></div>
+    </section>
+
+    <!-- Costs Tab -->
+    <section id="tab-costs" class="tab-panel">
+        <div class="costs-grid" id="costs-layer-cards"></div>
+        <div id="costs-table-wrap" style="margin-top:24px"></div>
+    </section>
+</main>
+
+<!-- ─── Detail Side Panel ─── -->
+<aside class="detail-panel" id="detail-panel">
+    <button class="panel-close" id="panel-close">✕</button>
+    <div id="panel-content"></div>
+</aside>
+
+<!-- overlay removed: panel slides over without blurring lineage -->
+
+<footer class="footer">
+    Boohoo Group Data Platform — Data Quality & Lineage Explorer v3.0 — Powered by DuckDB + Parquet
+</footer>
+
+<script src="/static/app.js?v=4"></script>
+</body>
+</html>

@@ -50,7 +50,7 @@ with DAG(
     dag_id="01_ingestion",
     default_args=default_args,
     description="Trigger AWS Lambda functions to generate and load data to S3",
-    schedule_interval="10 1 * * *",
+    schedule_interval="10 1 * * 1,3,5",  # 01:10 UTC Mon/Wed/Fri
     start_date=datetime(2026, 5, 1),
     catchup=False,
     tags=["ingestion", "lambda", "s3"],

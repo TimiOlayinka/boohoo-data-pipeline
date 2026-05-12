@@ -21,7 +21,7 @@ with DAG(
     dag_id="02_transform_rdl",
     default_args=default_args,
     description="Raw Data Layer: Deduplicate and normalise source data from 5 platforms",
-    schedule_interval="30 1 * * *",
+    schedule_interval="30 1 * * 1,3,5",  # Mon/Wed/Fri,
     start_date=datetime(2026, 5, 1),
     catchup=False,
     tags=["transform", "dbt", "rdl"],

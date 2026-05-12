@@ -21,7 +21,7 @@ with DAG(
     dag_id="04_transform_adl",
     default_args=default_args,
     description="Analytics Data Layer: Pre-aggregated tables for Looker Studio dashboards",
-    schedule_interval="50 1 * * *",
+    schedule_interval="50 1 * * 1,3,5",  # Mon/Wed/Fri,
     start_date=datetime(2026, 5, 1),
     catchup=False,
     tags=["transform", "dbt", "adl", "bi"],

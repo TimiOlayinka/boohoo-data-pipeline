@@ -21,7 +21,7 @@ with DAG(
     dag_id="03_transform_odl",
     default_args=default_args,
     description="Operational Data Layer: Build star schema (dims, facts, maps)",
-    schedule_interval="40 1 * * *",
+    schedule_interval="40 1 * * 1,3,5",  # Mon/Wed/Fri,
     start_date=datetime(2026, 5, 1),
     catchup=False,
     tags=["transform", "dbt", "odl"],
