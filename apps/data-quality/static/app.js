@@ -1,4 +1,4 @@
-/* Data Quality & Lineage — v3: schema, focus mode, chain filter, domain filter */
+/* Data Quality & Lineage — v4: fixed lineage filters */
 
 let allModels=[], lineageData=null, activeFilter='all', activeDomain='all', activeStatus='all', activeAttention=false, selectedNode=null;
 let nodes={}, camera={x:0,y:0,zoom:1}, dragging=null, panning=false, panStart={x:0,y:0}, hoverNode=null;
@@ -105,11 +105,12 @@ function filterLineageByDomain(){
         focusChain=null;
     } else {
         const chain=new Set(filtered);
-        // include connected source nodes
+        // Include ONLY the source nodes that feed into filtered models
         lineageData.edges.forEach(e=>{
-            if(chain.has(e.from)) chain.add(e.to);
-            if(chain.has(e.to)) chain.add(e.from);
+            if(chain.has(e.to)&&e.from.startsWith('source:')) chain.add(e.from);
         });
+        // Also include edges between filtered models (inter-layer connections)
+        // but do NOT expand to unrelated models
         focusChain=chain;
     }
     renderLineage();
@@ -266,11 +267,13 @@ function renderLineage(){
     lineageData.edges.forEach(e=>{
         const from=nodes[e.from], to=nodes[e.to];
         if(!from||!to) return;
-        if(visibleNodes&&!visibleNodes.has(e.from)&&!visibleNodes.has(e.to)) return;
+        const fromIn=!visibleNodes||visibleNodes.has(e.from);
+        const toIn=!visibleNodes||visibleNodes.has(e.to);
+        // If filtering active, only draw edges where BOTH ends are in chain
+        if(visibleNodes&&(!fromIn||!toIn)) return;
         const isHL=selectedNode&&(e.from===selectedNode||e.to===selectedNode);
-        const dimmed=visibleNodes&&(!visibleNodes.has(e.from)||!visibleNodes.has(e.to));
-        ctx.strokeStyle=isHL?'rgba(129,140,248,0.6)':dimmed?'rgba(255,255,255,0.02)':'rgba(255,255,255,0.05)';
-        ctx.lineWidth=isHL?2:0.8;
+        ctx.strokeStyle=isHL?'rgba(129,140,248,0.7)':'rgba(255,255,255,0.08)';
+        ctx.lineWidth=isHL?2.5:1;
         ctx.beginPath(); ctx.moveTo(from.x,from.y);
         const mx=(from.x+to.x)/2;
         ctx.bezierCurveTo(mx,from.y,mx,to.y,to.x,to.y); ctx.stroke();
@@ -292,11 +295,8 @@ function renderLineage(){
         const r=isSrc?4:(isSel?8:(isHov?7:5));
         const color=LAYER_COLORS[n.layer]||'#555';
 
-        if(!inChain){
-            ctx.globalAlpha=0.08;
-            ctx.beginPath(); ctx.arc(n.x,n.y,3,0,Math.PI*2);
-            ctx.fillStyle='#555'; ctx.fill(); ctx.globalAlpha=1; return;
-        }
+        // Completely skip non-matching nodes when filters are active
+        if(!inChain) return;
 
         if(n.status==='fail'||isSel){ctx.shadowColor=isSel?'#818cf8':'#f87171';ctx.shadowBlur=isSel?16:10;}
         ctx.beginPath(); ctx.arc(n.x,n.y,r,0,Math.PI*2);
