@@ -62,6 +62,8 @@
             <button class="filter-btn" data-filter="rdl">RDL</button>
             <button class="filter-btn" data-filter="odl">ODL</button>
             <button class="filter-btn" data-filter="adl">ADL</button>
+            <span class="legend-sep">|</span>
+            <span id="domain-filter"></span>
             <div class="search-wrap">
                 <input type="text" id="model-search" placeholder="Search models..." class="search-input">
             </div>
@@ -82,10 +84,10 @@
     <div id="panel-content"></div>
 </aside>
 
-<div class="overlay" id="overlay"></div>
+<!-- overlay removed: panel slides over without blurring lineage -->
 
 <footer class="footer">
-    Boohoo Group Data Platform — Data Quality & Lineage Explorer v2.0 — Powered by DuckDB + Parquet
+    Boohoo Group Data Platform — Data Quality & Lineage Explorer v3.0 — Powered by DuckDB + Parquet
 </footer>
 
 <script src="/static/app.js"></script>

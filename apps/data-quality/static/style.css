@@ -167,6 +167,17 @@ body {
 .search-input:focus { border-color: var(--indigo); }
 .search-input::placeholder { color: var(--text-muted); }
 
+.domain-select {
+    background: var(--glass); border: 1px solid var(--glass-border);
+    color: var(--text-primary); font-family: inherit; font-size: 12px;
+    padding: 6px 14px; border-radius: var(--radius-pill);
+    outline: none; cursor: pointer; transition: border-color var(--transition);
+    -webkit-appearance: none; appearance: none;
+}
+.domain-select:focus { border-color: var(--indigo); }
+
+.dep-schema { color: var(--text-muted); font-size: 10px; }
+
 table.quality-table {
     width: 100%; border-collapse: separate; border-spacing: 0;
     background: var(--glass); border: 1px solid var(--glass-border);

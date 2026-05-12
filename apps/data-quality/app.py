@@ -152,11 +152,38 @@ for model_name, model_data in MODELS.items():
         TEST_DETAILS[model_name] = tests
 
 
+# ─── Derive schema for each model ───
+SCHEMA_MAP = {
+    ("rdl", "boohoo_commerce"): "rdl_boohoo_commerce",
+    ("rdl", "salesforce"): "rdl_salesforce_commerce",
+    ("rdl", "shopify"): "rdl_shopify",
+    ("rdl", "magento"): "rdl_magento",
+    ("rdl", "oracle"): "rdl_oracle_commerce",
+    ("rdl", "marketing"): "rdl_marketing",
+    ("odl", "conformed"): "odl",
+    ("odl", "marketing"): "odl",
+    ("odl", "mapping"): "odl",
+    ("adl", "analytics"): "bi",
+}
+for model_name, model_data in MODELS.items():
+    model_data["schema"] = SCHEMA_MAP.get(
+        (model_data["layer"], model_data["domain"]),
+        model_data["layer"]
+    )
+
+ALL_DOMAINS = sorted(set(m["domain"] for m in MODELS.values()))
+
+
 # ─── API Routes ───
 
 @app.route("/")
 def index():
     return send_from_directory("static", "index.html")
+
+
+@app.route("/api/domains")
+def api_domains():
+    return jsonify(ALL_DOMAINS)
 
 
 @app.route("/api/summary")
