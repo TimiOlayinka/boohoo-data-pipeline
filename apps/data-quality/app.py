@@ -151,7 +151,6 @@ for model_name, model_data in MODELS.items():
             tests.append({"test": "not_null", "column": "key", "status": "pass", "severity": "error", "message": None, "sql": f"SELECT count(*) FROM {model_name} WHERE key IS NULL"})
         TEST_DETAILS[model_name] = tests
 
-
 # ─── Derive schema for each model ───
 SCHEMA_MAP = {
     ("rdl", "boohoo_commerce"): "rdl_boohoo_commerce",
@@ -165,13 +164,30 @@ SCHEMA_MAP = {
     ("odl", "mapping"): "odl",
     ("adl", "analytics"): "bi",
 }
+
+# Map technical domains to business domains
+BUSINESS_DOMAIN_MAP = {
+    "boohoo_commerce": "E-Commerce",
+    "salesforce": "E-Commerce",
+    "shopify": "E-Commerce",
+    "magento": "E-Commerce",
+    "oracle": "E-Commerce",
+    "marketing": "Marketing",
+    "conformed": "Core Business",
+    "mapping": "Reference Data",
+    "analytics": "Analytics & BI",
+}
+
 for model_name, model_data in MODELS.items():
     model_data["schema"] = SCHEMA_MAP.get(
         (model_data["layer"], model_data["domain"]),
         model_data["layer"]
     )
+    model_data["business_domain"] = BUSINESS_DOMAIN_MAP.get(
+        model_data["domain"], model_data["domain"]
+    )
 
-ALL_DOMAINS = sorted(set(m["domain"] for m in MODELS.values()))
+ALL_DOMAINS = sorted(set(m["business_domain"] for m in MODELS.values()))
 
 
 # ─── API Routes ───

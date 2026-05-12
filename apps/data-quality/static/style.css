@@ -178,6 +178,23 @@ body {
 
 .dep-schema { color: var(--text-muted); font-size: 10px; }
 
+.attention-btn {
+    background: var(--glass); border: 1px solid var(--glass-border);
+    color: var(--text-secondary); font-family: inherit; font-size: 12px;
+    padding: 6px 14px; border-radius: var(--radius-pill);
+    cursor: pointer; transition: all var(--transition);
+    display: inline-flex; align-items: center; gap: 6px;
+}
+.attention-btn:hover { border-color: var(--amber); color: var(--amber); }
+.attention-btn.active {
+    background: rgba(251,191,36,0.12); border-color: rgba(251,191,36,0.4);
+    color: var(--amber);
+}
+.attention-count {
+    background: var(--red); color: #fff; font-size: 10px; font-weight: 700;
+    padding: 1px 6px; border-radius: 10px; min-width: 18px; text-align: center;
+}
+
 table.quality-table {
     width: 100%; border-collapse: separate; border-spacing: 0;
     background: var(--glass); border: 1px solid var(--glass-border);

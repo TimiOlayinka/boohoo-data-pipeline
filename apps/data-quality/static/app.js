@@ -1,6 +1,6 @@
 /* Data Quality & Lineage — v3: schema, focus mode, chain filter, domain filter */
 
-let allModels=[], lineageData=null, activeFilter='all', activeDomain='all', selectedNode=null;
+let allModels=[], lineageData=null, activeFilter='all', activeDomain='all', activeStatus='all', activeAttention=false, selectedNode=null;
 let nodes={}, camera={x:0,y:0,zoom:1}, dragging=null, panning=false, panStart={x:0,y:0}, hoverNode=null;
 let focusChain=null; // set of node IDs in the isolated chain
 
@@ -47,20 +47,51 @@ function renderDomainFilter(domains){
     if(!wrap) return;
     wrap.innerHTML=`<select id="domain-select" class="domain-select">
         <option value="all">All Domains</option>
-        ${domains.map(d=>`<option value="${d}">${d.replace(/_/g,' ')}</option>`).join('')}
+        ${domains.map(d=>`<option value="${d}">${d}</option>`).join('')}
     </select>`;
     document.getElementById('domain-select').addEventListener('change',e=>{
         activeDomain=e.target.value; filterTable(); filterLineageByDomain();
     });
 }
 
+function renderStatusFilter(){
+    const wrap=document.getElementById('status-filter');
+    if(!wrap) return;
+    wrap.innerHTML=`<select id="status-select" class="domain-select">
+        <option value="all">All Statuses</option>
+        <option value="pass">✓ Passing</option>
+        <option value="warn">▲ Warnings</option>
+        <option value="fail">✕ Failing</option>
+    </select>`;
+    document.getElementById('status-select').addEventListener('change',e=>{
+        activeStatus=e.target.value; filterTable(); filterLineageByDomain();
+    });
+}
+
+function renderAttentionFilter(){
+    const wrap=document.getElementById('attention-filter');
+    if(!wrap) return;
+    const failCount=allModels.filter(m=>m.status==='fail').length;
+    const warnCount=allModels.filter(m=>m.status==='warn').length;
+    const attentionCount=failCount+warnCount;
+    wrap.innerHTML=`<button id="attention-btn" class="attention-btn" title="Show models that need attention">
+        ⚠ Needs Attention <span class="attention-count">${attentionCount}</span>
+    </button>`;
+    document.getElementById('attention-btn').addEventListener('click',e=>{
+        const btn=e.currentTarget;
+        btn.classList.toggle('active');
+        activeAttention=btn.classList.contains('active');
+        filterTable(); filterLineageByDomain();
+    });
+}
+
 function filterLineageByDomain(){
-    if(activeDomain==='all'){focusChain=null;}
-    else{
-        const inDomain=new Set();
-        allModels.filter(m=>m.domain===activeDomain).forEach(m=>inDomain.add(m.name));
-        // include connected nodes
-        const chain=new Set(inDomain);
+    const filtered=getFilteredModelNames();
+    if(activeDomain==='all'&&activeStatus==='all'&&!activeAttention){
+        focusChain=null;
+    } else {
+        const chain=new Set(filtered);
+        // include connected source nodes
         lineageData.edges.forEach(e=>{
             if(chain.has(e.from)) chain.add(e.to);
             if(chain.has(e.to)) chain.add(e.from);
@@ -68,6 +99,15 @@ function filterLineageByDomain(){
         focusChain=chain;
     }
     renderLineage();
+}
+
+function getFilteredModelNames(){
+    return allModels.filter(m=>{
+        if(activeDomain!=='all'&&m.business_domain!==activeDomain) return false;
+        if(activeStatus!=='all'&&m.status!==activeStatus) return false;
+        if(activeAttention&&m.status==='pass') return false;
+        return true;
+    }).map(m=>m.name);
 }
 
 // ─── Tabs ───
@@ -91,17 +131,22 @@ function initFilters(){
             btn.classList.add('active'); activeFilter=btn.dataset.filter; filterTable();
         });
     });
+    renderStatusFilter();
+    renderAttentionFilter();
 }
 function initSearch(){document.getElementById('model-search').addEventListener('input',filterTable);}
 
 function filterTable(){
     const search=document.getElementById('model-search').value.toLowerCase();
     document.querySelectorAll('#quality-tbody tr').forEach(row=>{
-        const layer=row.dataset.layer, name=row.dataset.name, domain=row.dataset.domain;
+        const layer=row.dataset.layer, name=row.dataset.name;
+        const bDomain=row.dataset.bdomain, status=row.dataset.status;
         const matchLayer=activeFilter==='all'||layer===activeFilter;
-        const matchDomain=activeDomain==='all'||domain===activeDomain;
+        const matchDomain=activeDomain==='all'||bDomain===activeDomain;
+        const matchStatus=activeStatus==='all'||status===activeStatus;
+        const matchAttention=!activeAttention||status!=='pass';
         const matchSearch=!search||name.includes(search);
-        row.style.display=matchLayer&&matchSearch&&matchDomain?'':'none';
+        row.style.display=matchLayer&&matchSearch&&matchDomain&&matchStatus&&matchAttention?'':'none';
     });
 }
 
@@ -117,13 +162,13 @@ function renderQualityTable(models){
         const total=m.tests_pass+m.tests_fail+m.tests_warn;
         const pW=total>0?(m.tests_pass/total*100):0, fW=total>0?(m.tests_fail/total*100):0, wW=total>0?(m.tests_warn/total*100):0;
         const tr=document.createElement('tr');
-        tr.dataset.layer=m.layer; tr.dataset.name=m.name; tr.dataset.domain=m.domain;
+        tr.dataset.layer=m.layer; tr.dataset.name=m.name; tr.dataset.bdomain=m.business_domain; tr.dataset.status=m.status;
         tr.innerHTML=`
             <td><span class="status-dot ${m.status}"></span>${m.status.toUpperCase()}</td>
             <td><span class="layer-tag ${m.layer}">${m.layer}</span></td>
             <td class="mono" style="font-size:10px;color:var(--text-secondary)">${m.schema||''}</td>
             <td class="mono">${m.name}</td>
-            <td>${m.domain}</td>
+            <td>${m.business_domain}</td>
             <td class="num">${m.rows.toLocaleString()}</td>
             <td>${m.freshness}</td>
             <td>${m.tests_pass}\u2713 ${m.tests_fail}\u2715 ${m.tests_warn}\u25B2</td>
