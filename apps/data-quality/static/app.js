@@ -49,12 +49,12 @@ function renderDomainFilter(domains){
         const wrap=document.getElementById(id);
         if(!wrap) return;
         const sel=document.createElement('select');
-        sel.className='domain-select';
+        sel.className='domain-select domain-select-el';
         sel.innerHTML=`<option value="all">All Domains</option>${domains.map(d=>`<option value="${d}">${d}</option>`).join('')}`;
         sel.addEventListener('change',e=>{
             activeDomain=e.target.value;
             // sync the other dropdown
-            document.querySelectorAll('.domain-select').forEach(s=>{if(s!==e.target)s.value=activeDomain;});
+            document.querySelectorAll('.domain-select-el').forEach(s=>{if(s!==e.target)s.value=activeDomain;});
             filterTable(); filterLineageByDomain();
         });
         wrap.innerHTML=''; wrap.appendChild(sel);
