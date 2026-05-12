@@ -309,8 +309,21 @@ function onMouseMove(e){
 }
 function onMouseUp(e){
     if(dragging&&!dragMoved){
-        // click without drag = select
-        if(!dragging.startsWith('source:')){selectedNode=dragging;openPanel(dragging);}
+        const hit=dragging;
+        if(hit&&!hit.startsWith('source:')){
+            if(selectedNode===hit){
+                // 2nd click on same node: focus chain + open panel
+                focusChain=getChainFor(hit);
+                openPanel(hit);
+            } else {
+                // 1st click: just highlight
+                selectedNode=hit;
+                focusChain=null; // reset any previous focus
+            }
+        }
+    } else if(!dragging&&!panning&&!dragMoved){
+        // clicked empty space = deselect
+        selectedNode=null; focusChain=null;
     }
     dragging=null;panning=false;e.target.style.cursor='grab';renderLineage();
 }
@@ -322,16 +335,12 @@ function onWheel(e){
     camera.zoom=newZoom; renderLineage();
 }
 function onDblClick(e){
+    // Double-click empty space = full reset
     const rect=e.target.getBoundingClientRect(), w=screenToWorld(e.clientX-rect.left,e.clientY-rect.top);
     const hit=findNodeAt(w.x,w.y);
-    if(hit&&!hit.startsWith('source:')){
-        // Double-click node = isolate chain
-        focusChain=getChainFor(hit); selectedNode=hit; openPanel(hit);
-    } else {
-        // Double-click empty = reset
-        focusChain=null; selectedNode=null;
+    if(!hit){
+        focusChain=null; selectedNode=null; closePanel(); renderLineage();
     }
-    renderLineage();
 }
 
 // ESC to reset focus
