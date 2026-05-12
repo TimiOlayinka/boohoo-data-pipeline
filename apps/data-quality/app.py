@@ -87,6 +87,70 @@ MODELS = {
     "fact_influencer_roi":     {"layer":"adl","domain":"analytics","entity":"aggregate","brand":"All","rows":180,"columns":8,"freshness":"30m","status":"pass","tests_pass":2,"tests_fail":0,"tests_warn":0,"cost_day":0.01,"versions_avg":0,"upstream":["fact_influencer_performance"],"downstream":[]},
 }
 
+# ─────────────────────────────────────────────
+# Per-Model Test Details
+# ─────────────────────────────────────────────
+
+TEST_DETAILS = {
+    "boohoo_orders": [
+        {"test": "not_null", "column": "order_id", "status": "pass", "severity": "error", "message": None, "sql": "SELECT count(*) FROM rdl_boohoo_commerce.boohoo_orders WHERE order_id IS NULL"},
+        {"test": "unique", "column": "order_id", "status": "pass", "severity": "error", "message": None, "sql": "SELECT order_id, count(*) FROM rdl_boohoo_commerce.boohoo_orders GROUP BY 1 HAVING count(*) > 1"},
+        {"test": "accepted_values", "column": "order_status", "status": "pass", "severity": "warn", "message": None, "sql": "SELECT order_status FROM rdl_boohoo_commerce.boohoo_orders WHERE order_status NOT IN ('pending','confirmed','shipped','delivered','cancelled','returned')"},
+    ],
+    "boohoo_customers": [
+        {"test": "not_null", "column": "customer_id", "status": "pass", "severity": "error", "message": None, "sql": "SELECT count(*) FROM rdl_boohoo_commerce.boohoo_customers WHERE customer_id IS NULL"},
+        {"test": "unique", "column": "customer_id", "status": "pass", "severity": "error", "message": None, "sql": "SELECT customer_id, count(*) FROM rdl_boohoo_commerce.boohoo_customers GROUP BY 1 HAVING count(*) > 1"},
+        {"test": "relationships", "column": "email", "status": "warn", "severity": "warn", "message": "12 customers have duplicate email addresses across brand variants. Deduplication recommended before ODL merge.", "sql": "SELECT email, count(*) FROM rdl_boohoo_commerce.boohoo_customers GROUP BY 1 HAVING count(*) > 1"},
+    ],
+    "boohoo_products": [
+        {"test": "not_null", "column": "product_id", "status": "pass", "severity": "error", "message": None, "sql": "SELECT count(*) FROM rdl_boohoo_commerce.boohoo_products WHERE product_id IS NULL"},
+        {"test": "unique", "column": "product_id", "status": "pass", "severity": "error", "message": None, "sql": "SELECT product_id, count(*) FROM rdl_boohoo_commerce.boohoo_products GROUP BY 1 HAVING count(*) > 1"},
+        {"test": "not_null", "column": "product_name", "status": "pass", "severity": "warn", "message": None, "sql": "SELECT count(*) FROM rdl_boohoo_commerce.boohoo_products WHERE product_name IS NULL"},
+    ],
+    "debenhams_orders": [
+        {"test": "not_null", "column": "order_id", "status": "pass", "severity": "error", "message": None, "sql": "SELECT count(*) FROM rdl_oracle_commerce.debenhams_orders WHERE order_id IS NULL"},
+        {"test": "unique", "column": "order_id", "status": "pass", "severity": "error", "message": None, "sql": "SELECT order_id, count(*) FROM rdl_oracle_commerce.debenhams_orders GROUP BY 1 HAVING count(*) > 1"},
+        {"test": "freshness", "column": "loaded_at", "status": "warn", "severity": "warn", "message": "Source data is 3h 12m old. Threshold is 3h. Oracle Commerce API may be experiencing delays.", "sql": "SELECT max(loaded_at), DATEDIFF(minute, max(loaded_at), GETDATE()) as mins_stale FROM rdl_oracle_commerce.debenhams_orders"},
+    ],
+    "rdl_google_ads": [
+        {"test": "not_null", "column": "campaign_id", "status": "pass", "severity": "error", "message": None, "sql": "SELECT count(*) FROM rdl_marketing.rdl_google_ads WHERE campaign_id IS NULL"},
+        {"test": "unique", "column": "campaign_id", "status": "pass", "severity": "error", "message": None, "sql": "SELECT campaign_id, count(*) FROM rdl_marketing.rdl_google_ads GROUP BY 1 HAVING count(*) > 1"},
+        {"test": "accepted_values", "column": "currency_code", "status": "warn", "severity": "warn", "message": "3 rows have currency_code='EUR' which is unexpected. All campaigns should be in GBP. Check Google Ads account settings.", "sql": "SELECT currency_code, count(*) FROM rdl_marketing.rdl_google_ads GROUP BY 1"},
+    ],
+    "fact_orders": [
+        {"test": "not_null", "column": "order_id", "status": "pass", "severity": "error", "message": None, "sql": "SELECT count(*) FROM odl.fact_orders WHERE order_id IS NULL"},
+        {"test": "unique", "column": "order_id", "status": "pass", "severity": "error", "message": None, "sql": "SELECT order_id, count(*) FROM odl.fact_orders GROUP BY 1 HAVING count(*) > 1"},
+        {"test": "relationships", "column": "customer_id", "status": "pass", "severity": "error", "message": None, "sql": "SELECT f.customer_id FROM odl.fact_orders f LEFT JOIN odl.dim_customers d ON f.customer_id = d.customer_id WHERE d.customer_id IS NULL"},
+        {"test": "row_count", "column": None, "status": "fail", "severity": "error", "message": "Row count dropped 18% from yesterday (445,200 vs 543,000). Likely cause: Debenhams and Coast order feeds arrived with truncated data. Investigate Oracle Commerce and Magento source extractions.", "sql": "SELECT count(*) as current_count, 543000 as expected_min FROM odl.fact_orders"},
+    ],
+    "dim_customers": [
+        {"test": "not_null", "column": "customer_id", "status": "pass", "severity": "error", "message": None, "sql": "SELECT count(*) FROM odl.dim_customers WHERE customer_id IS NULL"},
+        {"test": "unique", "column": "customer_id", "status": "pass", "severity": "error", "message": None, "sql": "SELECT customer_id, count(*) FROM odl.dim_customers GROUP BY 1 HAVING count(*) > 1"},
+        {"test": "not_null", "column": "email", "status": "pass", "severity": "error", "message": None, "sql": "SELECT count(*) FROM odl.dim_customers WHERE email IS NULL"},
+        {"test": "not_null", "column": "brand", "status": "pass", "severity": "error", "message": None, "sql": "SELECT count(*) FROM odl.dim_customers WHERE brand IS NULL"},
+    ],
+    "dim_products": [
+        {"test": "not_null", "column": "product_id", "status": "pass", "severity": "error", "message": None, "sql": "SELECT count(*) FROM odl.dim_products WHERE product_id IS NULL"},
+        {"test": "unique", "column": "product_id", "status": "pass", "severity": "error", "message": None, "sql": "SELECT product_id, count(*) FROM odl.dim_products GROUP BY 1 HAVING count(*) > 1"},
+        {"test": "not_null", "column": "category", "status": "pass", "severity": "warn", "message": None, "sql": "SELECT count(*) FROM odl.dim_products WHERE category IS NULL"},
+    ],
+}
+
+# Generate default test details for models not explicitly listed
+for model_name, model_data in MODELS.items():
+    if model_name not in TEST_DETAILS:
+        tests = []
+        if model_data["entity"] in ("orders", "customers", "products", "dimension", "fact", "aggregate"):
+            pk = f"{model_data['entity']}_id" if model_data["entity"] not in ("aggregate",) else "id"
+            tests.append({"test": "not_null", "column": pk, "status": "pass", "severity": "error", "message": None, "sql": f"SELECT count(*) FROM {model_name} WHERE {pk} IS NULL"})
+            tests.append({"test": "unique", "column": pk, "status": "pass", "severity": "error", "message": None, "sql": f"SELECT {pk}, count(*) FROM {model_name} GROUP BY 1 HAVING count(*) > 1"})
+        elif model_data["entity"] in ("ads", "sessions", "email", "influencer"):
+            tests.append({"test": "not_null", "column": "id", "status": "pass", "severity": "error", "message": None, "sql": f"SELECT count(*) FROM {model_name} WHERE id IS NULL"})
+            tests.append({"test": "unique", "column": "id", "status": "pass", "severity": "error", "message": None, "sql": f"SELECT id, count(*) FROM {model_name} GROUP BY 1 HAVING count(*) > 1"})
+        elif model_data["entity"] == "map":
+            tests.append({"test": "not_null", "column": "key", "status": "pass", "severity": "error", "message": None, "sql": f"SELECT count(*) FROM {model_name} WHERE key IS NULL"})
+        TEST_DETAILS[model_name] = tests
+
 
 # ─── API Routes ───
 
@@ -132,6 +196,13 @@ def api_model_detail(name):
     if not m:
         return jsonify({"error": "not found"}), 404
     return jsonify({"name": name, **m})
+
+
+@app.route("/api/tests/<name>")
+def api_tests(name):
+    """Return test details for a specific model."""
+    tests = TEST_DETAILS.get(name, [])
+    return jsonify(tests)
 
 
 @app.route("/api/lineage")

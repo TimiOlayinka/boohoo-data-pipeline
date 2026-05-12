@@ -261,6 +261,58 @@ table.quality-table {
 }
 .panel-deps li:hover { background: rgba(255,255,255,0.06); }
 
+/* ─── Test Detail Rows ─── */
+.test-detail-list { display: flex; flex-direction: column; gap: 8px; }
+.test-detail-row {
+    background: rgba(255,255,255,0.02); border: 1px solid var(--glass-border);
+    border-radius: var(--radius-sm); padding: 10px 12px;
+    transition: border-color var(--transition);
+}
+.test-detail-row.fail { border-left: 3px solid var(--red); }
+.test-detail-row.warn { border-left: 3px solid var(--amber); }
+.test-detail-row.pass { border-left: 3px solid var(--green); }
+.test-detail-row:hover { border-color: var(--border-hover); }
+
+.test-detail-header {
+    display: flex; align-items: center; gap: 8px; margin-bottom: 4px;
+}
+.test-icon { font-size: 13px; font-weight: 700; flex-shrink: 0; }
+.test-name { font-size: 12px; font-weight: 600; color: var(--text-primary); }
+.test-column {
+    font-family: 'JetBrains Mono', monospace; font-size: 10px;
+    color: var(--text-secondary); background: rgba(255,255,255,0.04);
+    padding: 1px 6px; border-radius: 4px;
+}
+.test-severity {
+    margin-left: auto; font-size: 9px; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 0.5px;
+    padding: 1px 6px; border-radius: 4px;
+}
+.sev-error { background: var(--red-bg); color: var(--red); }
+.sev-warn { background: var(--amber-bg); color: var(--amber); }
+
+.test-message {
+    font-size: 11px; color: var(--text-primary); line-height: 1.5;
+    padding: 8px 10px; margin: 6px 0;
+    background: rgba(248,113,113,0.06); border-radius: 6px;
+    border-left: 2px solid rgba(248,113,113,0.3);
+}
+.test-detail-row.warn .test-message {
+    background: rgba(251,191,36,0.06);
+    border-left-color: rgba(251,191,36,0.3);
+}
+
+.test-sql {
+    margin-top: 4px;
+}
+.test-sql code {
+    display: block; font-family: 'JetBrains Mono', monospace;
+    font-size: 9px; color: var(--text-muted); line-height: 1.5;
+    background: rgba(0,0,0,0.3); padding: 6px 8px;
+    border-radius: 4px; overflow-x: auto;
+    white-space: pre-wrap; word-break: break-all;
+}
+
 .overlay {
     position: fixed; inset: 0; background: rgba(0,0,0,0.4);
     z-index: 150; display: none; backdrop-filter: blur(4px);
