@@ -1,0 +1,21 @@
+duplicate_tests:
+- name: no_duplicate_campaign_id
+  description: Each (campaign_id, date_start, publisher_platform, brand, ingest_date)
+    combination should be unique
+  enabled: true
+  schedule: daily
+  field:
+  - campaign_id
+  - date_start
+  - publisher_platform
+  - brand
+  - ingest_date
+  severity: error
+gap_tests:
+- name: no_missing_date_nk
+  description: No gaps in date_nk coverage
+  enabled: true
+  schedule: daily
+  field:
+  - date_nk
+  severity: warning

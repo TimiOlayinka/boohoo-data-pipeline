@@ -1,0 +1,32 @@
+model:
+  name: fact_influencer_roi
+  domain: bi
+  schema: bi
+  layer: adl
+owners:
+  workstream: boohoo-data-engineering
+  analytics_owner: data-team@boohoo.com
+  business_owner: bi-team@boohoo.com
+  technical_owner: data-team@boohoo.com
+service:
+  sla: Daily by 07:00 Europe/London
+  refresh_cadence: daily
+  criticality: high
+description:
+  short: Influencer marketing ROI dashboard — creator performance by tier, platform,
+    brand
+  business_purpose: Influencer marketing ROI dashboard — creator performance by tier,
+    platform, brand
+grain: One row per record in fact_influencer_roi
+depends_on_products:
+- fact_influencer_performance
+documentation:
+  main: ./README.md
+  runbook: ./runbook.md
+classification:
+  certified_for_reporting: true
+  contains_pii: false
+  confidentiality: internal
+tags:
+- adl
+- bi

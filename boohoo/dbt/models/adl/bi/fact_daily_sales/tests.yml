@@ -1,0 +1,9 @@
+duplicate_tests: []
+gap_tests:
+- name: no_missing_order_date
+  description: No gaps in order_date coverage
+  enabled: true
+  schedule: daily
+  field:
+  - order_date
+  severity: warning
