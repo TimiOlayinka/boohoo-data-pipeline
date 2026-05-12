@@ -1,15 +1,15 @@
-name: Deploy Boohoo Lambdas (Terraform)
+name: Deploy HNB Lambdas (Terraform)
 
 on:
   push:
     branches:
       - main
     paths:
-      - 'boohoo/lambda/**'
-      - 'boohoo/terraform/**'
-      - 'boohoo/scripts/build_zips.py'
+      - 'hnb/lambda/**'
+      - 'hnb/terraform/**'
+      - 'hnb/scripts/build_zips.py'
       - 'airflow/dags/**'
-      - 'boohoo/dbt/**'
+      - 'hnb/dbt/**'
   workflow_dispatch:
 
 jobs:
@@ -26,7 +26,7 @@ jobs:
           python-version: '3.11'
 
       - name: Build Lambda Deployment Packages
-        working-directory: ./boohoo
+        working-directory: ./hnb
         run: python scripts/build_zips.py
 
       - name: Setup Terraform
@@ -40,16 +40,16 @@ jobs:
           aws-region: eu-west-2
 
       - name: Terraform Init
-        working-directory: ./boohoo/terraform
+        working-directory: ./hnb/terraform
         run: terraform init
 
       - name: Terraform Apply
-        working-directory: ./boohoo/terraform
+        working-directory: ./hnb/terraform
         run: terraform apply -auto-approve
 
       - name: Sync Airflow DAGs to EC2 via SSM
         run: |
-          INSTANCE_ID=$(aws ec2 describe-instances --filters "Name=tag:Name,Values=boohoo-airflow" "Name=instance-state-name,Values=running" --query "Reservations[0].Instances[0].InstanceId" --output text)
+          INSTANCE_ID=$(aws ec2 describe-instances --filters "Name=tag:Name,Values=hnb-airflow" "Name=instance-state-name,Values=running" --query "Reservations[0].Instances[0].InstanceId" --output text)
           if [ "$INSTANCE_ID" != "None" ]; then
             echo "Syncing code to instance: $INSTANCE_ID"
             aws ssm send-command \
