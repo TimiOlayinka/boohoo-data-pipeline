@@ -22,7 +22,7 @@ resource "aws_redshiftserverless_namespace" "hnb" {
 }
 
 resource "aws_redshiftserverless_workgroup" "hnb" {
-  workgroup_name = "bellosdata"
+  workgroup_name = "hnb-workgroup"
   namespace_name = aws_redshiftserverless_namespace.hnb.namespace_name
   base_capacity  = 8
 
