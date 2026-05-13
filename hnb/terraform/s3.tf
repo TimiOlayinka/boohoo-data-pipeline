@@ -4,16 +4,16 @@
 
 import {
   to = aws_s3_bucket.rdl_staging
-  id = "hnb-dns-rdl-staging"
+  id = "boohoo-dns-rdl-staging"
 }
 
 import {
   to = aws_s3_bucket.terraform_state
-  id = "hnb-terraform-state-332779204498"
+  id = "boohoo-terraform-state-332779204498"
 }
 
 resource "aws_s3_bucket" "rdl_staging" {
-  bucket = "hnb-dns-rdl-staging"
+  bucket = "boohoo-dns-rdl-staging"
 }
 
 resource "aws_s3_bucket_versioning" "rdl_staging" {
@@ -44,7 +44,7 @@ resource "aws_s3_bucket_lifecycle_configuration" "rdl_staging" {
 }
 
 resource "aws_s3_bucket" "terraform_state" {
-  bucket = "hnb-terraform-state-332779204498"
+  bucket = "boohoo-terraform-state-332779204498"
 }
 
 resource "aws_s3_bucket_versioning" "terraform_state" {
