@@ -32,7 +32,7 @@ GOVERNANCE_ASSET = Asset("s3://playdarch-bronze-raw/governance")
 
 # ── Configuration ──────────────────────────────────────────────
 S3_BUCKET = "playdarch-bronze-raw"
-AWS_PROFILE = "playEngineer"
+from aws_session import get_aws_session
 SESSION_ID = "AWUJOO-024"
 
 # Master manifest: every file that should live in S3
@@ -182,7 +182,7 @@ def drive_sync():
         """Compare local hashes with S3 metadata — only sync what changed."""
         import boto3
 
-        session = boto3.Session(profile_name=AWS_PROFILE)
+        session = get_aws_session()
         s3 = session.client("s3", region_name="eu-west-2")
 
         files_to_sync = []
@@ -253,7 +253,7 @@ def drive_sync():
             fail_invoice,
         )
 
-        session = boto3.Session(profile_name=AWS_PROFILE)
+        session = get_aws_session()
         s3 = session.client("s3", region_name="eu-west-2")
         now_iso = datetime.utcnow().isoformat() + "Z"
 

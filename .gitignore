@@ -3,6 +3,14 @@ __pycache__/
 *.py[cod]
 *.egg-info/
 .env
+.env.cloud
+
+# SSH keys
+*.pem
+
+# Unity Catalog credentials (local and cloud)
+unity-catalog/etc/conf/server.properties
+unity-catalog/etc/conf/server.cloud.properties
 
 # dbt
 **/dbt_packages/

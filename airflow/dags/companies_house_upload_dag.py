@@ -26,7 +26,7 @@ CH_ASSET = Asset("s3://playdarch-bronze-raw/companies-house")
 # ── Configuration ──────────────────────────────────────────────
 S3_BUCKET = "playdarch-bronze-raw"
 S3_PREFIX = "companies-house"
-AWS_PROFILE = "playEngineer"
+from aws_session import get_aws_session
 SESSION_ID = "AWUJOO-024"
 
 RAW_DATA_DIR = r"D:\AlwaysPlanning\awujoo-data-platform\raw_data"
@@ -124,7 +124,7 @@ def companies_house_upload():
         import boto3
         from invoice_engine import transition_invoice, complete_invoice, fail_invoice
 
-        session = boto3.Session(profile_name=AWS_PROFILE)
+        session = get_aws_session()
         s3 = session.client("s3", region_name="eu-west-2")
         now_iso = datetime.utcnow().isoformat() + "Z"
 

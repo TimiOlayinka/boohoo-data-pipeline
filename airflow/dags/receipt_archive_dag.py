@@ -17,21 +17,24 @@ from airflow.decorators import dag, task
 from airflow.sdk import Asset
 from airflow.timetables.assets import AssetOrTimeSchedule
 from airflow.timetables.trigger import CronTriggerTimetable
+from aws_session import get_aws_session, is_cloud
 
 # ── Assets ─────────────────────────────────────────────────
 RECEIPTS_TRIGGER = Asset("s3://playdarch-bronze-raw/receipts")
 RECEIPTS_OUTLET = Asset("s3://playdarch-bronze-raw/receipts-archived")
 
-RECEIPT_DIRS = [
+# Local receipt dirs (only accessible on local machine)
+LOCAL_RECEIPT_DIRS = [
     r"X:\BellosData\receipts",
     r"Y:\Merchant Ledger\receipts",
     r"Y:\brain\SHARED.brain\merchant-ledger\receipts",
 ]
+# Cloud: no local dirs — only verify S3 blockchain integrity
+RECEIPT_DIRS = [] if is_cloud() else LOCAL_RECEIPT_DIRS
 S3_BUCKET = "playdarch-bronze-raw"
 S3_RECEIPTS_PREFIX = "receipts"
 S3_BLOCKCHAIN_PREFIX = "blockchain"
-AWS_PROFILE = "playEngineer"
-ALERTS_DIR = r"X:\BellosData\alerts"
+ALERTS_DIR = "/tmp/bellosdata/alerts" if is_cloud() else r"X:\BellosData\alerts"
 
 logger = logging.getLogger(__name__)
 
@@ -74,7 +77,7 @@ def receipt_archive():
     @task(outlets=[RECEIPTS_OUTLET])
     def sync_receipts_to_s3(receipts: list) -> dict:
         import boto3
-        s3 = boto3.Session(profile_name=AWS_PROFILE).client("s3", region_name="eu-west-2")
+        s3 = get_aws_session().client("s3", region_name="eu-west-2")
         uploaded, seen = 0, set()
         for r in receipts:
             if r["filename"] in seen:
@@ -96,7 +99,7 @@ def receipt_archive():
     @task()
     def verify_blockchain() -> dict:
         import boto3
-        s3 = boto3.Session(profile_name=AWS_PROFILE).client("s3", region_name="eu-west-2")
+        s3 = get_aws_session().client("s3", region_name="eu-west-2")
         try:
             resp = s3.list_objects_v2(Bucket=S3_BUCKET, Prefix=f"{S3_BLOCKCHAIN_PREFIX}/BLOCK-")
             keys = sorted([o["Key"] for o in resp.get("Contents", []) if o["Key"].endswith(".json")])

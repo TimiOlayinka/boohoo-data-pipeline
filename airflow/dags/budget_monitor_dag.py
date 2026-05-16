@@ -17,10 +17,11 @@ import logging
 
 from airflow.decorators import dag, task
 
+from aws_session import get_aws_session, is_cloud
+
 # ── Configuration ──────────────────────────────────────────────
-ALERTS_DIR = r"X:\BellosData\alerts"
+ALERTS_DIR = "/tmp/bellosdata/alerts" if is_cloud() else r"X:\BellosData\alerts"
 S3_BUCKET = "playdarch-bronze-raw"
-AWS_PROFILE = "playEngineer"
 AWS_ACCOUNT_ID = "332779204498"
 
 # Budget thresholds
@@ -53,7 +54,7 @@ def budget_monitor():
         """Query AWS Cost Explorer for current month spend."""
         import boto3
 
-        session = boto3.Session(profile_name=AWS_PROFILE)
+        session = get_aws_session()
         ce = session.client("ce", region_name="us-east-1")
 
         now = datetime.utcnow()
@@ -154,7 +155,7 @@ def budget_monitor():
         """Upload budget status to S3 for cloud visibility."""
         import boto3
 
-        session = boto3.Session(profile_name=AWS_PROFILE)
+        session = get_aws_session()
         s3 = session.client("s3", region_name="eu-west-2")
 
         s3_key = "ledger-live/budget_status.json"
