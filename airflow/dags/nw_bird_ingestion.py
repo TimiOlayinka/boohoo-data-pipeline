@@ -29,8 +29,8 @@ NW_BIRD_BRONZE = Asset("s3://playdarch-bronze-raw/nw-birds")
 # ── Configuration ──────────────────────────────────────────
 S3_BUCKET = "playdarch-bronze-raw"
 S3_PREFIX = "nw-birds"
-AWS_PROFILE = "playEngineer"
-REGION = "eu-west-2"
+from aws_session import get_aws_session, AWS_REGION
+REGION = AWS_REGION
 
 # eBird region codes for NW England counties
 # Format: GB-ENG-XXX (subnational2 codes)
@@ -361,7 +361,7 @@ def nw_bird_ingestion():
         import boto3
 
         # Configure S3 storage options for Delta Lake writer
-        session = boto3.Session(profile_name=AWS_PROFILE)
+        session = get_aws_session()
         credentials = session.get_credentials().get_frozen_credentials()
         storage_options = {
             "AWS_ACCESS_KEY_ID": credentials.access_key,

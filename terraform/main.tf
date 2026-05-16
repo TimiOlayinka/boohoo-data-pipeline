@@ -5,7 +5,6 @@ provider "aws" {
 
 # ═══════════════════════════════════════════════════════════════
 # IAM ROLES — Managed via AWS CLI (PowerUserAccess cannot list/read IAM policies)
-# Roles created and policies attached in AWUJOO-019 session.
 # ═══════════════════════════════════════════════════════════════
 #
 # Role: ecs_execution_role
@@ -16,6 +15,10 @@ provider "aws" {
 #   ARN: arn:aws:iam::332779204498:role/ledger-cloud-api-role
 #   Attached: AWSLambdaBasicExecutionRole, AmazonS3ReadOnlyAccess
 #
+# IAM User: bellosdata-platform (created manually in console)
+#   Attached: AmazonS3FullAccess
+#   Access keys stored on data-platform Lightsail instance
+#
 
 locals {
   ecs_execution_role_arn = "arn:aws:iam::332779204498:role/ecs_execution_role"
@@ -23,10 +26,99 @@ locals {
 }
 
 # ═══════════════════════════════════════════════════════════════
-# ECR + ECS Fargate (Pipeline Containers)
+# Lightsail — Data Platform (Airflow + Unity Catalog)
+# Always-on cloud instance running Docker Compose
 # ═══════════════════════════════════════════════════════════════
 
-# 1. ECR Repository
+resource "aws_lightsail_instance" "data_platform" {
+  name              = "bellosdata-platform"
+  availability_zone = "eu-west-2a"
+  blueprint_id      = "amazon_linux_2023"
+  bundle_id         = "medium_3_0" # 4 GB RAM, 2 vCPU, 80 GB, $24/mo
+  key_pair_name     = "LightsailDefaultKeyPair"
+
+  tags = {
+    Project = "BellosData"
+    Role    = "data-platform"
+    Stack   = "airflow-unity-catalog"
+  }
+
+  user_data = <<-EOF
+    #!/bin/bash
+    set -e
+
+    # ── System updates ──
+    yum update -y
+    yum install -y docker git
+
+    # ── Docker setup ──
+    systemctl enable docker
+    systemctl start docker
+    usermod -aG docker ec2-user
+
+    # ── Docker Compose v2 ──
+    mkdir -p /usr/local/lib/docker/cli-plugins
+    curl -SL "https://github.com/docker/compose/releases/latest/download/docker-compose-linux-x86_64" \
+      -o /usr/local/lib/docker/cli-plugins/docker-compose
+    chmod +x /usr/local/lib/docker/cli-plugins/docker-compose
+
+    # ── Clone repository ──
+    cd /home/ec2-user
+    git clone https://github.com/TimiOlayinka/boohoo-data-pipeline.git platform
+    chown -R ec2-user:ec2-user platform
+
+    # ── Create .env file (credentials injected via deploy script) ──
+    cat > /home/ec2-user/platform/.env <<'ENVFILE'
+    AWS_ACCESS_KEY_ID=REPLACE_ME
+    AWS_SECRET_ACCESS_KEY=REPLACE_ME
+    AWS_DEFAULT_REGION=eu-west-2
+    ENVFILE
+
+    echo "Bootstrap complete. Run deploy-platform.ps1 to configure and start services."
+  EOF
+}
+
+resource "aws_lightsail_static_ip" "data_platform_ip" {
+  name = "bellosdata-platform-ip"
+}
+
+resource "aws_lightsail_static_ip_attachment" "data_platform_ip_attach" {
+  static_ip_name = aws_lightsail_static_ip.data_platform_ip.name
+  instance_name  = aws_lightsail_instance.data_platform.name
+}
+
+resource "aws_lightsail_instance_public_ports" "data_platform_ports" {
+  instance_name = aws_lightsail_instance.data_platform.name
+
+  port_info {
+    protocol  = "tcp"
+    from_port = 22
+    to_port   = 22
+  }
+
+  port_info {
+    protocol  = "tcp"
+    from_port = 8081
+    to_port   = 8081 # Airflow UI
+  }
+
+  port_info {
+    protocol  = "tcp"
+    from_port = 8070
+    to_port   = 8070 # Unity Catalog API
+  }
+
+  port_info {
+    protocol  = "tcp"
+    from_port = 3000
+    to_port   = 3000 # Unity Catalog UI
+  }
+}
+
+# ═══════════════════════════════════════════════════════════════
+# ECR + ECS Fargate (Pipeline Containers — future use)
+# ═══════════════════════════════════════════════════════════════
+
 resource "aws_ecr_repository" "data_pipelines" {
   name                 = "bellosdata-pipelines"
   image_tag_mutability = "MUTABLE"
@@ -36,18 +128,16 @@ resource "aws_ecr_repository" "data_pipelines" {
   }
 }
 
-# 2. ECS Cluster
 resource "aws_ecs_cluster" "bellosdata_cluster" {
   name = "bellosdata-cluster"
 }
 
-# 3. ECS Task Definition
 resource "aws_ecs_task_definition" "pipeline_task" {
   family                   = "bellosdata-pipeline-task"
   network_mode             = "awsvpc"
   requires_compatibilities = ["FARGATE"]
-  cpu                      = "256" # Minimal CPU
-  memory                   = "512" # Minimal Memory
+  cpu                      = "256"
+  memory                   = "512"
   execution_role_arn       = local.ecs_execution_role_arn
 
   container_definitions = jsonencode([
@@ -67,7 +157,6 @@ resource "aws_ecs_task_definition" "pipeline_task" {
   ])
 }
 
-# 4. CloudWatch Log Group (ECS)
 resource "aws_cloudwatch_log_group" "ecs_log_group" {
   name              = "/ecs/bellosdata-pipeline"
   retention_in_days = 7
@@ -75,53 +164,24 @@ resource "aws_cloudwatch_log_group" "ecs_log_group" {
 
 # ═══════════════════════════════════════════════════════════════
 # Lambda Cloud API — The Light That Never Goes Out
-# AWUJOO-018: Genesis Block Architecture
-# AWUJOO-019: Cloud Light Activation (deployed via CLI)
 # ═══════════════════════════════════════════════════════════════
 
-# Lambda function deployed via CLI in AWUJOO-019 session.
-# Function: ledger-cloud-api
-# ARN: arn:aws:lambda:eu-west-2:332779204498:function:ledger-cloud-api
-#
-# API Gateway resources managed here for drift detection.
-
-# 5. CloudWatch Log Group (Lambda)
 resource "aws_cloudwatch_log_group" "ledger_api_logs" {
   name              = "/aws/lambda/ledger-cloud-api"
   retention_in_days = 7
 }
 
-# 6. API Gateway (HTTP API v2 — cheaper than REST)
 resource "aws_apigatewayv2_api" "ledger_api" {
   name          = "ledger-cloud-api"
   protocol_type = "HTTP"
   description   = "Merchant Ledger Cloud API — The Light That Never Goes Out"
 }
 
-# 7. API Gateway Stage (auto-deploy)
 resource "aws_apigatewayv2_stage" "ledger_default" {
   api_id      = aws_apigatewayv2_api.ledger_api.id
   name        = "$default"
   auto_deploy = true
 }
-
-# ═══════════════════════════════════════════════════════════════
-# BellosData Lakehouse — Governance Layer
-# MIGRATED: Glue + Athena → Unity Catalog OSS + DuckDB
-# Sprint S1 (AWUJOO-027) → Unity Migration (2026-05-16)
-#
-# Unity Catalog runs locally via Docker Compose:
-#   Server: http://localhost:8070
-#   UI:     http://localhost:3000
-#   Config: unity-catalog/compose.yaml
-#
-# Query engine: DuckDB (connects directly to Unity Catalog API)
-#
-# Former resources (DELETED from AWS):
-#   - aws_s3_bucket.athena_results (playdarch-athena-results)
-#   - aws_glue_catalog_database.lakehouse (bellosdata_lakehouse)
-#   - aws_athena_workgroup.analytics (bellosdata-analytics)
-# ═══════════════════════════════════════════════════════════════
 
 # ═══════════════════════════════════════════════════════════════
 # Outputs
@@ -142,3 +202,17 @@ output "ledger_api_id" {
   description = "API Gateway ID"
 }
 
+output "data_platform_ip" {
+  value       = aws_lightsail_static_ip.data_platform_ip.ip_address
+  description = "Data Platform static IP (Airflow + Unity Catalog)"
+}
+
+output "airflow_url" {
+  value       = "http://${aws_lightsail_static_ip.data_platform_ip.ip_address}:8081"
+  description = "Airflow UI URL"
+}
+
+output "unity_catalog_url" {
+  value       = "http://${aws_lightsail_static_ip.data_platform_ip.ip_address}:3000"
+  description = "Unity Catalog UI URL"
+}
