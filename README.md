@@ -89,7 +89,7 @@ flowchart LR
 ## Project Structure
 
 ```
-aws-data-portfolio/
+boohoo-data-pipeline/
 │
 ├── airflow/
 │   ├── dags/                              # 18 orchestration DAGs
