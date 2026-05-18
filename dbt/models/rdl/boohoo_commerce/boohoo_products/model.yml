@@ -1,0 +1,31 @@
+model:
+  name: boohoo_products
+  domain: boohoo_commerce
+  schema: rdl_boohoo_commerce
+  layer: rdl
+owners:
+  workstream: boohoo-data-engineering
+  analytics_owner: data-team@boohoo.com
+  business_owner: boohoo_commerce-team@boohoo.com
+  technical_owner: data-team@boohoo.com
+service:
+  sla: Daily by 07:00 Europe/London
+  refresh_cadence: daily
+  criticality: medium
+description:
+  short: Boohoo Products — RDL layer model
+  business_purpose: Boohoo Products — RDL layer model
+grain: One row per (product_id) per ingestion version
+depends_on_products:
+- rdl_boohoo_commerce.boohoo_products_history
+documentation:
+  main: ./README.md
+  runbook: ./runbook.md
+classification:
+  certified_for_reporting: false
+  contains_pii: false
+  confidentiality: internal
+tags:
+- rdl
+- boohoo_commerce
+- boohoo

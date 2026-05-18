@@ -1,0 +1,31 @@
+model:
+  name: fact_funnel_metrics
+  domain: bi
+  schema: bi
+  layer: adl
+owners:
+  workstream: boohoo-data-engineering
+  analytics_owner: data-team@boohoo.com
+  business_owner: bi-team@boohoo.com
+  technical_owner: data-team@boohoo.com
+service:
+  sla: Daily by 07:00 Europe/London
+  refresh_cadence: daily
+  criticality: high
+description:
+  short: Marketing funnel analysis — Awareness → Consideration → Conversion
+  business_purpose: Marketing funnel analysis — Awareness → Consideration → Conversion
+grain: One row per record in fact_funnel_metrics
+depends_on_products:
+- fact_marketing_spend_daily
+- fact_ga4_sessions
+documentation:
+  main: ./README.md
+  runbook: ./runbook.md
+classification:
+  certified_for_reporting: true
+  contains_pii: false
+  confidentiality: internal
+tags:
+- adl
+- bi

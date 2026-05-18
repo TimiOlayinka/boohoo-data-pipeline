@@ -1,0 +1,16 @@
+duplicate_tests:
+- name: unique_session_sk
+  description: Surrogate key session_sk must be unique
+  enabled: true
+  schedule: daily
+  field:
+  - session_sk
+  severity: error
+gap_tests:
+- name: no_missing_date_nk
+  description: No gaps in date_nk coverage
+  enabled: true
+  schedule: daily
+  field:
+  - date_nk
+  severity: warning

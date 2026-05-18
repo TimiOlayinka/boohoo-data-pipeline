@@ -2,35 +2,34 @@
 __pycache__/
 *.py[cod]
 *.egg-info/
+.eggs/
+*.egg
+venv/
 .env
-.env.cloud
 
-# SSH keys
-*.pem
-
-# Unity Catalog credentials (local and cloud)
-unity-catalog/etc/conf/server.properties
-unity-catalog/etc/conf/server.cloud.properties
+# Terraform
+*.tfstate
+*.tfstate.*
+*.tfvars
+.terraform/
+.terraform.lock.hcl
+crash.log
 
 # dbt
-**/dbt_packages/
-**/target/
-**/logs/
-**/.user.yml
+dbt/target/
+dbt/logs/
+dbt/dbt_packages/
+dbt/.user.yml
+
+# Lambda build artefacts
+dist/*.zip
 
 # IDE
-.vscode/settings.json
+.vscode/
+.idea/
+*.swp
+*.swo
 
 # OS
 .DS_Store
 Thumbs.db
-
-# Build artifacts
-dist/
-
-# Terraform
-.terraform/
-.terraform.lock.hcl
-*.tfstate
-*.tfstate.backup
-*.tfvars

@@ -1,0 +1,32 @@
+model:
+  name: debenhams_orders
+  domain: oracle_commerce
+  schema: rdl_oracle_commerce
+  layer: rdl
+owners:
+  workstream: boohoo-data-engineering
+  analytics_owner: data-team@boohoo.com
+  business_owner: oracle_commerce-team@boohoo.com
+  technical_owner: data-team@boohoo.com
+service:
+  sla: Daily by 07:00 Europe/London
+  refresh_cadence: daily
+  criticality: medium
+description:
+  short: Debenhams Orders — RDL layer model
+  business_purpose: Debenhams Orders — RDL layer model
+grain: One row per (order_id) per ingestion version
+depends_on_products:
+- rdl_oracle_commerce.debenhams_orders_history
+documentation:
+  main: ./README.md
+  runbook: ./runbook.md
+classification:
+  certified_for_reporting: false
+  contains_pii: false
+  confidentiality: internal
+tags:
+- rdl
+- oracle_commerce
+- debenhams
+- commerce

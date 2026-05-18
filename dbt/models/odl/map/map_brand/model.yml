@@ -1,0 +1,30 @@
+model:
+  name: map_brand
+  domain: map
+  schema: odl
+  layer: odl
+owners:
+  workstream: boohoo-data-engineering
+  analytics_owner: data-team@boohoo.com
+  business_owner: map-team@boohoo.com
+  technical_owner: data-team@boohoo.com
+service:
+  sla: Daily by 07:00 Europe/London
+  refresh_cadence: daily
+  criticality: medium
+description:
+  short: Brand reference mapping
+  business_purpose: Brand reference mapping
+grain: One row per record in map_brand
+depends_on_products: []
+documentation:
+  main: ./README.md
+  runbook: ./runbook.md
+classification:
+  certified_for_reporting: true
+  contains_pii: false
+  confidentiality: internal
+tags:
+- odl
+- map
+- boohoo

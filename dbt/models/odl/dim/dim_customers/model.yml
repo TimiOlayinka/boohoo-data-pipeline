@@ -1,0 +1,37 @@
+model:
+  name: dim_customers
+  domain: dim
+  schema: odl
+  layer: odl
+owners:
+  workstream: boohoo-data-engineering
+  analytics_owner: data-team@boohoo.com
+  business_owner: dim-team@boohoo.com
+  technical_owner: data-team@boohoo.com
+service:
+  sla: Daily by 07:00 Europe/London
+  refresh_cadence: daily
+  criticality: high
+description:
+  short: Unified customer dimension across all Boohoo Group brands (star schema)
+  business_purpose: Unified customer dimension across all Boohoo Group brands (star
+    schema)
+grain: One row per (email) per brand
+depends_on_products:
+- boohoo_customers
+- boohoo_man_customers
+- plt_customers
+- nastygal_customers
+- karen_millen_customers
+- coast_customers
+- debenhams_customers
+documentation:
+  main: ./README.md
+  runbook: ./runbook.md
+classification:
+  certified_for_reporting: true
+  contains_pii: true
+  confidentiality: internal
+tags:
+- odl
+- dim
