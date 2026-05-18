@@ -1,0 +1,32 @@
+model:
+  name: fact_email_engagement
+  domain: fact
+  schema: odl
+  layer: odl
+owners:
+  workstream: boohoo-data-engineering
+  analytics_owner: data-team@boohoo.com
+  business_owner: fact-team@boohoo.com
+  technical_owner: data-team@boohoo.com
+service:
+  sla: Daily by 07:00 Europe/London
+  refresh_cadence: daily
+  criticality: high
+description:
+  short: Email campaign engagement fact table with delivery and conversion metrics
+  business_purpose: Email campaign engagement fact table with delivery and conversion
+    metrics
+grain: One row per record in fact_email_engagement
+depends_on_products:
+- rdl_email_campaigns
+- map_brand
+documentation:
+  main: ./README.md
+  runbook: ./runbook.md
+classification:
+  certified_for_reporting: true
+  contains_pii: true
+  confidentiality: internal
+tags:
+- odl
+- fact

@@ -1,0 +1,31 @@
+model:
+  name: fact_revenue_by_brand
+  domain: bi
+  schema: bi
+  layer: adl
+owners:
+  workstream: boohoo-data-engineering
+  analytics_owner: data-team@boohoo.com
+  business_owner: bi-team@boohoo.com
+  technical_owner: data-team@boohoo.com
+service:
+  sla: Daily by 07:00 Europe/London
+  refresh_cadence: daily
+  criticality: high
+description:
+  short: Pre-aggregated revenue metrics by brand - feeds Looker Studio
+  business_purpose: Pre-aggregated revenue metrics by brand - feeds Looker Studio
+grain: One row per record in fact_revenue_by_brand
+depends_on_products:
+- fact_orders
+- map_brand
+documentation:
+  main: ./README.md
+  runbook: ./runbook.md
+classification:
+  certified_for_reporting: true
+  contains_pii: false
+  confidentiality: internal
+tags:
+- adl
+- bi
