@@ -1,17 +1,18 @@
 <p align="center">
-  <h1 align="center">HNB Group — Enterprise Data Pipeline</h1>
+  <h1 align="center">BellosData Lakehouse — S3 Delta Lake Platform</h1>
   <p align="center">
-    <strong>End-to-end data platform built on AWS, orchestrated with Airflow, deployed with Terraform, transformed with dbt, and visualised in Looker Studio.</strong>
+    <strong>Serverless data lakehouse on AWS — public APIs ingested by Airflow, stored as Delta Lake on S3, modelled via YAML-driven dimensional builders, catalogued by Unity Catalog, and queried with DuckDB.</strong>
   </p>
   <p align="center">
-    <img src="https://img.shields.io/badge/Terraform-7B42BC?style=for-the-badge&logo=terraform&logoColor=white" alt="Terraform">
-    <img src="https://img.shields.io/badge/AWS_Lambda-FF9900?style=for-the-badge&logo=awslambda&logoColor=white" alt="Lambda">
-    <img src="https://img.shields.io/badge/Amazon_Redshift-8C4FFF?style=for-the-badge&logo=amazonredshift&logoColor=white" alt="Redshift">
-    <img src="https://img.shields.io/badge/Amazon_S3-569A31?style=for-the-badge&logo=amazons3&logoColor=white" alt="S3">
     <img src="https://img.shields.io/badge/Apache_Airflow-017CEE?style=for-the-badge&logo=apacheairflow&logoColor=white" alt="Airflow">
-    <img src="https://img.shields.io/badge/dbt-FF694B?style=for-the-badge&logo=dbt&logoColor=white" alt="dbt">
-    <img src="https://img.shields.io/badge/GitHub_Actions-2088FF?style=for-the-badge&logo=githubactions&logoColor=white" alt="GitHub Actions">
+    <img src="https://img.shields.io/badge/Delta_Lake-003366?style=for-the-badge&logo=databricks&logoColor=white" alt="Delta Lake">
+    <img src="https://img.shields.io/badge/Amazon_S3-569A31?style=for-the-badge&logo=amazons3&logoColor=white" alt="S3">
+    <img src="https://img.shields.io/badge/Unity_Catalog-FF3621?style=for-the-badge&logo=databricks&logoColor=white" alt="Unity Catalog">
+    <img src="https://img.shields.io/badge/DuckDB-FFF000?style=for-the-badge&logo=duckdb&logoColor=black" alt="DuckDB">
+    <img src="https://img.shields.io/badge/Docker-2496ED?style=for-the-badge&logo=docker&logoColor=white" alt="Docker">
+    <img src="https://img.shields.io/badge/Terraform-7B42BC?style=for-the-badge&logo=terraform&logoColor=white" alt="Terraform">
     <img src="https://img.shields.io/badge/Python-3776AB?style=for-the-badge&logo=python&logoColor=white" alt="Python">
+    <img src="https://img.shields.io/badge/AWS_Lightsail-FF9900?style=for-the-badge&logo=amazonaws&logoColor=white" alt="Lightsail">
   </p>
 </p>
 
@@ -19,65 +20,69 @@
 
 ## Architecture Overview
 
-This project simulates a **production-grade marketing analytics platform** for HNB Group — a multi-brand fashion conglomerate operating 7 brands across 5 different e-commerce platforms. The entire cloud environment is defined as **Infrastructure as Code** using Terraform, orchestrated by **Apache Airflow**, deployed via **GitHub Actions CI/CD**, and follows a **three-layer data warehouse** pattern (RDL → ODL → ADL).
+A **production-grade data lakehouse** built entirely on AWS serverless/low-cost services. The platform ingests data from **6 public APIs**, stores it as **Delta Lake** tables on S3, transforms it through **YAML-driven dimensional builders**, and serves it via **Unity Catalog** and **DuckDB**.
 
 ```mermaid
 flowchart LR
-    subgraph GENERATE["Data Generation"]
-        L1["🔧 9 Lambda\nMicro-services"]
+    subgraph SOURCES["🌐 Public APIs"]
+        A1["Open-Meteo\nWeather"]
+        A2["Open-Meteo\nWind"]
+        A3["eBird / NW Birding\nBird Sightings"]
+        A4["OurAirports\nAviation Data"]
+        A5["postcodes.io\nUK Postcodes"]
+        A6["Companies House\nUK Companies"]
     end
 
-    subgraph ORCHESTRATE["Orchestration"]
-        AF["🎯 Apache Airflow\n5 DAGs"]
+    subgraph PLATFORM["🖥️ Lightsail (Docker Compose)"]
+        AF["Apache Airflow 3.2.1\n18 DAGs\nCeleryExecutor"]
+        UC["Unity Catalog\nDelta Lake Metadata"]
+        DDB["DuckDB\nSQL Console"]
     end
 
-    subgraph STORE["Data Lake"]
-        S3["📦 S3 Bucket\nJSONL.GZ\nHive-partitioned"]
+    subgraph BRONZE["📦 S3 Bronze"]
+        B["bellosdata-bronze-raw\nRDL (Delta Lake)\nPartitioned by ingest_date"]
     end
 
-    subgraph WAREHOUSE["Data Warehouse"]
-        RS["🏛️ Redshift\nServerless"]
+    subgraph SILVER["🥈 S3 Silver"]
+        S["bellosdata-silver-curated\nODL (Delta Lake)\nDimensions · Facts · Maps"]
     end
 
-    subgraph TRANSFORM["Transformation"]
-        DBT["⚙️ dbt Core\n54 SQL Models"]
-    end
+    A1 & A2 & A3 & A4 & A5 & A6 -->|"HTTP GET"| AF
+    AF -->|"RDL Write\n(Delta append)"| B
+    AF -->|"ODL Builders\n(YAML-driven)"| S
+    B -->|"Source data"| S
+    S --> UC
+    S --> DDB
 
-    subgraph VISUALISE["Reporting"]
-        LS["📊 Looker\nStudio"]
-    end
-
-    AF -->|"Triggers"| L1
-    L1 -->|"EventBridge\nDaily @ Midnight"| S3
-    AF -->|"COPY"| RS
-    S3 -->|"Ingestion"| RS
-    RS -->|"RDL → ODL → ADL"| DBT
-    AF -->|"Runs"| DBT
-    DBT --> LS
-
-    style GENERATE fill:#FF9900,color:#fff
-    style ORCHESTRATE fill:#017CEE,color:#fff
-    style STORE fill:#569A31,color:#fff
-    style WAREHOUSE fill:#8C4FFF,color:#fff
-    style TRANSFORM fill:#FF694B,color:#fff
-    style VISUALISE fill:#4285F4,color:#fff
+    style SOURCES fill:#4285F4,color:#fff
+    style PLATFORM fill:#FF9900,color:#fff
+    style BRONZE fill:#CD7F32,color:#fff
+    style SILVER fill:#C0C0C0,color:#000
 ```
+
+### How It Works
+
+1. **18 Airflow DAGs** run on a schedule — each ingests data from a public API via HTTP
+2. **RDL ingestion DAGs** write raw JSON records to **S3 Bronze** as Delta Lake tables, partitioned by `ingest_date`
+3. **ODL builder DAGs** read YAML configuration files (`dimensions.yml`, `facts.yml`, `mappings.yml`) and construct typed dimensional tables on **S3 Silver**
+4. **Unity Catalog** provides metadata governance across all Delta tables
+5. **DuckDB** web SQL console enables ad-hoc querying of both Bronze and Silver layers
 
 ---
 
 ## Tech Stack
 
 | Layer | Technology | Purpose |
-|-------|-----------|---------|
-| **Infrastructure** | Terraform | All AWS resources defined as code |
-| **CI/CD** | GitHub Actions | Automated build, plan, and deploy on merge to `main` |
-| **Compute** | AWS Lambda (Python 3.11) | 11 micro-services (9 data generators + 2 EC2 scheduler) |
-| **Orchestration** | Apache Airflow 2.10.5 | 5 DAGs — ingestion, S3→Redshift COPY, and dbt layer runs |
-| **Scheduling** | Amazon EventBridge | Daily cron triggers + Airflow EC2 auto start/stop |
-| **Storage** | Amazon S3 | Hive-partitioned data lake (`JSONL.GZ`) |
-| **Warehouse** | Redshift Serverless | Auto-scaling columnar analytics engine |
-| **Transformation** | dbt Core | 54 SQL models across 3 warehouse layers |
-| **BI** | Google Looker Studio | Executive dashboards from the ADL |
+|-------|-----------|---------| 
+| **Infrastructure** | Terraform | Lightsail, ECR, ECS, Lambda, API Gateway — all as code |
+| **Compute** | AWS Lightsail | Always-on `medium_3_0` (4 GB RAM, 2 vCPU, $24/mo) |
+| **Orchestration** | Apache Airflow 3.2.1 | CeleryExecutor with Redis + PostgreSQL, 18 DAGs |
+| **Containerisation** | Docker Compose | Airflow cluster + Unity Catalog + DuckDB service |
+| **Storage** | Amazon S3 | Two-tier Delta Lake: Bronze (`bellosdata-bronze-raw`) + Silver (`bellosdata-silver-curated`) |
+| **Table Format** | Delta Lake | ACID transactions, time travel, schema enforcement |
+| **Catalog** | Unity Catalog (OSS) | Data governance, table metadata, access control |
+| **Query Engine** | DuckDB | In-process SQL analytics + web console |
+| **Language** | Python 3.11 | All DAGs, builders, and utilities |
 
 ---
 
@@ -86,322 +91,264 @@ flowchart LR
 ```
 aws-data-portfolio/
 │
+├── airflow/
+│   ├── dags/                              # 18 orchestration DAGs
+│   │   ├── bellosdata_common.py           # Shared: rdl_write, odl_write, http_get, manifests
+│   │   ├── aws_session.py                 # AWS credential management
+│   │   │
+│   │   ├── rdl_weather_ingestion.py       # Open-Meteo → NW England hourly weather
+│   │   ├── rdl_wind_ingestion.py          # Open-Meteo → Multi-height wind data
+│   │   ├── nw_bird_ingestion.py           # eBird + NW Birding → Bird sightings
+│   │   ├── rdl_airports_ingestion.py      # OurAirports → Global airport data
+│   │   ├── rdl_postcodes_ingestion.py     # postcodes.io → UK postcode lookup
+│   │   ├── rdl_companies_enhanced.py      # Companies House → NW companies
+│   │   ├── rdl_landscapes_ingestion.py    # UK landscape/habitat data
+│   │   ├── private_jet_ingestion.py       # OpenSky → NW private jet movements
+│   │   │
+│   │   ├── odl_dim_builder.py             # YAML-driven dimension builder
+│   │   ├── odl_fact_builder.py            # YAML-driven fact table builder
+│   │   ├── odl_mapping_builder.py         # YAML-driven mapping table builder
+│   │   │
+│   │   ├── companies_house_upload_dag.py  # Companies House S3 upload
+│   │   ├── drive_sync_dag.py              # Google Drive sync
+│   │   ├── budget_monitor_dag.py          # AWS cost monitoring
+│   │   ├── invoice_engine.py              # Invoice generation
+│   │   └── receipt_archive_dag.py         # Receipt archival to S3
+│   │
+│   ├── config/                            # YAML-driven data model registry
+│   │   ├── dimensions.yml                 # 7 dimensions (flat + hierarchy)
+│   │   ├── facts.yml                      # 4 fact tables with measures
+│   │   ├── mappings.yml                   # 6 mapping/bridge tables
+│   │   ├── copy_jobs.yml                  # S3 copy job definitions
+│   │   └── export_jobs.yml                # Data export configs
+│   │
+│   ├── plugins/                           # Airflow custom plugins
+│   ├── docker-compose.yaml                # Full Airflow cluster (CeleryExecutor)
+│   ├── docker-compose.cloud.yaml          # Cloud-optimised compose
+│   ├── duckdb_service.py                  # DuckDB web SQL console service
+│   └── duckdb_console.py                  # DuckDB CLI helper
+│
+├── terraform/
+│   └── main.tf                            # Lightsail + ECR + ECS + Lambda API + API Gateway
+│
+├── unity-catalog/
+│   ├── compose.yaml                       # Unity Catalog local compose
+│   ├── compose.cloud.yaml                 # Unity Catalog cloud compose
+│   ├── scripts/register_tables.py         # Automated table registration
+│   └── etc/conf/                          # Unity Catalog server config
+│
+├── lambda/
+│   └── ledger_api.py                      # Serverless cloud API (always-on Lambda)
+│
 ├── .github/
 │   └── workflows/
-│       ├── deploy_lambdas.yml         # CI/CD: Build → Terraform Init → Apply
-│       ├── pr_title_checker.yml       # Enforces DATA-X/description branch naming
-│       └── airflow_demo.yml           # Airflow demo workflow
+│       └── pr_title_checker.yml           # Enforces DATA-X branch naming
 │
-├── airflow/
-│   ├── config/                        # Airflow configuration
-│   └── dags/                          # 5 orchestration DAGs
-│       ├── 01_ingestion.py            # Invokes 9 Lambda data generators
-│       ├── 01b_s3_to_redshift.py      # COPY from S3 → Redshift staging tables
-│       ├── 02_transform_rdl.py        # dbt run — RDL layer
-│       ├── 03_transform_odl.py        # dbt run — ODL layer
-│       └── 04_transform_adl.py        # dbt run — ADL layer
+├── deploy-cloud.sh                        # Cloud deployment script (SCP + SSH)
+├── deploy-platform.ps1                    # Windows deployment automation
+├── start-platform.ps1                     # Local platform startup
 │
-├── hnb/
-│   ├── lambda/                        # 11 independent Lambda functions
-│   │   ├── ecommerce_customers/       # Customer data generator
-│   │   ├── ecommerce_orders/          # Order & order item generator
-│   │   ├── ecommerce_products/        # Product catalogue generator
-│   │   ├── marketing_meta_ads/        # Meta Ads campaign data
-│   │   ├── marketing_google_ads/      # Google Ads performance data
-│   │   ├── marketing_tiktok_ads/      # TikTok Ads engagement data
-│   │   ├── marketing_ga4_sessions/    # GA4 web session data
-│   │   ├── marketing_email_campaigns/ # Email/CRM campaign data
-│   │   ├── marketing_influencers/     # Influencer partnership data
-│   │   ├── ec2_start/                 # Airflow EC2 auto-start (scheduled)
-│   │   ├── ec2_stop/                  # Airflow EC2 auto-stop (scheduled)
-│   │   └── shared/                    # Shared utilities & config
-│   │       ├── config/
-│   │       │   ├── core.py
-│   │       │   ├── ecommerce.py
-│   │       │   └── marketing.py
-│   │       ├── handler_logic.py
-│   │       └── utils.py
-│   │
-│   ├── terraform/                     # Infrastructure as Code
-│   │   ├── main.tf                    # Provider & backend config
-│   │   ├── iam.tf                     # IAM roles & policies
-│   │   ├── lambdas.tf                 # 9 Lambda data generators (for_each)
-│   │   ├── ec2.tf                     # Airflow EC2 instance + IAM + bootstrap
-│   │   ├── ec2_scheduler.tf           # EC2 auto start/stop Lambdas + EventBridge
-│   │   ├── s3.tf                      # S3 buckets & lifecycle policies
-│   │   ├── redshift.tf                # Redshift Serverless cluster (data source)
-│   │   ├── variables.tf               # Input variables
-│   │   └── outputs.tf                 # Resource outputs
-│   │
-│   ├── dbt/                           # Data transformation layer
-│   │   ├── models/
-│   │   │   ├── rdl/                   # Raw Data Layer (27 models)
-│   │   │   │   ├── hnb_commerce/   #   HNB & HNBMAN (6 models)
-│   │   │   │   ├── salesforce_commerce/ # PrettyLittleThing (3 models)
-│   │   │   │   ├── shopify/           #   NastyGal (3 models)
-│   │   │   │   ├── magento/           #   Karen Millen & Coast (6 models)
-│   │   │   │   ├── oracle_commerce/   #   Debenhams (3 models)
-│   │   │   │   └── marketing/         #   Multi-channel marketing (6 models)
-│   │   │   ├── odl/                   # Operational Data Layer (15 models)
-│   │   │   │   ├── dim/               #   5 dimensions
-│   │   │   │   ├── fact/              #   7 fact tables
-│   │   │   │   └── map/               #   3 mapping tables
-│   │   │   └── adl/                   # Analytics Data Layer (12 models)
-│   │   │       └── bi/                #   12 pre-aggregated BI tables
-│   │   ├── dbt_project.yml
-│   │   └── packages.yml
-│   │
-│   ├── dist/                          # Built Lambda ZIP packages
-│   │
-│   └── scripts/
-│       └── build_zips.py              # Packages Lambda code for Terraform
-│
+├── .gitignore
 └── README.md
 ```
 
 ---
 
-## Data Warehouse Layers
+## Data Domains
 
-The warehouse follows an enterprise **RDL → ODL → ADL** pattern:
+The lakehouse ingests data across **6 domains**, all from free public APIs:
+
+| Domain | Source API | Schedule | Key Data |
+|--------|-----------|----------|----------|
+| **Weather** | Open-Meteo | Daily 08:00 UTC | Hourly observations for 8 NW England grid points — temp, precipitation, wind, UV |
+| **Wind** | Open-Meteo | Daily 08:30 UTC | Multi-height wind (10m/80m/120m) for energy & aviation analysis |
+| **NW Birds** | eBird + NW Birding | Daily 09:00 UTC | Bird sightings, species taxonomy, conservation status |
+| **Airports** | OurAirports CSV | Weekly | Global airport database — runways, coordinates, ICAO/IATA codes |
+| **Postcodes** | postcodes.io | Weekly | Full UK postcode register — geography, IMD, LSOA, constituency |
+| **Companies** | Companies House API | Daily | NW England company register — filings, SIC codes, insolvency |
+| **Private Jets** | OpenSky Network | Hourly | ADS-B aircraft positions over NW England airspace |
+| **Landscapes** | Multiple open sources | Monthly | UK habitat & landscape classification — SSSIs, NNRs, AONBs |
+
+---
+
+## Medallion Architecture
+
+The lakehouse follows a **Bronze → Silver → Gold** medallion pattern with YAML-driven transformation:
 
 ```mermaid
 flowchart TB
-    subgraph RDL["RDL — Raw Data Layer"]
+    subgraph BRONZE["Bronze — S3 Raw Data Layer (RDL)"]
         direction LR
-        R1["HNB Commerce"]
-        R2["Salesforce Commerce"]
-        R3["Shopify"]
-        R4["Magento"]
-        R5["Oracle Commerce"]
-        R6["Marketing Sources"]
+        R1["rdl/weather"]
+        R2["rdl/wind"]
+        R3["rdl/nw-birds"]
+        R4["rdl/airports"]
+        R5["rdl/postcodes"]
+        R6["rdl/companies"]
+        R7["rdl/private-jets"]
+        R8["rdl/landscapes"]
     end
 
-    subgraph ODL["ODL — Operational Data Layer"]
+    subgraph SILVER["Silver — S3 Curated Layer (ODL)"]
         direction LR
-        subgraph DIMS["Dimensions"]
-            D1["dim_customers"]
-            D2["dim_products"]
-            D3["dim_time"]
-            D4["dim_campaigns"]
-            D5["dim_marketing_channels"]
+        subgraph DIMS["Dimensions (7)"]
+            D1["dim_date"]
+            D2["dim_weather_station"]
+            D3["dim_species"]
+            D4["dim_company"]
+            D5["dim_location ⊞"]
+            D6["dim_airport ⊞"]
+            D7["dim_habitat ⊞"]
         end
-        subgraph FACTS["Facts"]
-            F1["fact_orders"]
-            F2["fact_meta_campaign_insights"]
-            F3["fact_google_ads_performance"]
-            F4["fact_tiktok_ad_insights"]
-            F5["fact_ga4_sessions"]
-            F6["fact_email_engagement"]
-            F7["fact_influencer_performance"]
+        subgraph FACTS["Facts (4)"]
+            F1["fact_weather_observation"]
+            F2["fact_wind_measurement"]
+            F3["fact_flight_movement"]
+            F4["fact_company_filing"]
         end
-        subgraph MAPS["Maps"]
-            M1["map_brand"]
-            M2["map_channel_grouping"]
-            M3["map_utm_sources"]
+        subgraph MAPS["Mappings (6)"]
+            M1["map_postcode_to_location"]
+            M2["map_company_to_postcode"]
+            M3["map_airport_to_location"]
+            M4["map_species_to_habitat"]
+            M5["map_owner_to_company"]
+            M6["map_station_to_location"]
         end
     end
 
-    subgraph ADL["ADL — Analytics Data Layer"]
-        direction LR
-        B1["fact_revenue_by_brand"]
-        B2["fact_daily_sales"]
-        B3["fact_customer_segments"]
-        B4["fact_product_performance"]
-        B5["fact_marketing_roas"]
-        B6["fact_marketing_spend_daily"]
-        B7["fact_funnel_metrics"]
-        B8["fact_campaign_performance"]
-        B9["fact_channel_performance"]
-        B10["fact_marketing_summary"]
-        B11["fact_email_performance"]
-        B12["fact_influencer_roi"]
-    end
+    BRONZE -->|"YAML-driven\nODL Builders"| SILVER
 
-    RDL --> ODL
-    ODL --> ADL
-
-    style RDL fill:#1a1a2e,color:#e0e0e0,stroke:#FF9900
-    style ODL fill:#1a1a2e,color:#e0e0e0,stroke:#8C4FFF
-    style ADL fill:#1a1a2e,color:#e0e0e0,stroke:#4285F4
+    style BRONZE fill:#CD7F32,color:#fff
+    style SILVER fill:#C0C0C0,color:#000
 ```
 
-| Layer | Schema | Purpose | Models |
-|-------|--------|---------|--------|
-| **RDL** | `rdl_{source}` | Raw data deduplication. Source field names aliased to unified schema. | 27 |
-| **ODL** | `odl` | Star schema with surrogate keys (`_sk`), conformed dimensions, calculated metrics. | 15 |
-| **ADL** | `bi` | Pre-aggregated materialised tables optimised for dashboard performance. | 12 |
+> **⊞** = Hierarchy dimension (multi-level parent-child: e.g. `dim_location` = Country → Region → County → District → Ward → Postcode)
+
+| Layer | S3 Bucket | Format | Purpose |
+|-------|-----------|--------|---------|
+| **Bronze (RDL)** | `bellosdata-bronze-raw` | Delta Lake (append) | Raw JSON records, partitioned by `ingest_date`. Source of truth. |
+| **Silver (ODL)** | `bellosdata-silver-curated` | Delta Lake (overwrite) | Typed star schema — dimensions, facts, mappings. Surrogate keys. |
+| **Gold (ADL)** | `bellosdata-gold-products` | Delta Lake | Pre-aggregated analytical tables for dashboards. |
 
 ---
 
-## Multi-Brand Challenge
+## YAML-Driven Data Modelling
 
-This pipeline simulates a real-world enterprise challenge: **7 acquired brands** running on **5 different e-commerce platforms**, each with its own schema conventions.
+Instead of hand-coding SQL transformations, the lakehouse uses **3 YAML registries** that are read by Python builder DAGs:
 
-| Brand | Source System | ID Field | Price Field |
-|-------|-------------|----------|------------|
-| **HNB** | HNB Commerce | `sku` | `selling_price` |
-| **HNBMAN** | HNB Commerce | `sku` | `selling_price` |
-| **PrettyLittleThing** | Salesforce Commerce | `product_id` | `price_book_price` |
-| **NastyGal** | Shopify | `variant_id` | `price` |
-| **Karen Millen** | Magento | `entity_id` | `price` |
-| **Coast** | Magento | `entity_id` | `price` |
-| **Debenhams** | Oracle Commerce | `item_id` | `list_price` |
+| Registry | File | Drives | Contents |
+|----------|------|--------|----------|
+| **Dimensions** | `config/dimensions.yml` | `odl_dim_builder.py` | 7 dimensions — flat (SCD1/2) and hierarchy (multi-level parent-child) |
+| **Facts** | `config/facts.yml` | `odl_fact_builder.py` | 4 fact tables — grain, dimension keys, measures with aggregation types |
+| **Mappings** | `config/mappings.yml` | `odl_mapping_builder.py` | 6 bridge tables — one-to-one, many-to-one, many-to-many with fuzzy matching |
 
-> The RDL layer normalises these into a single unified schema before the data enters the star schema.
+### Example: Adding a new dimension
 
----
+```yaml
+# dimensions.yml — just add a new entry:
+- name: dim_my_new_entity
+  type: flat
+  source: rdl/my_source
+  scd_type: 2
+  grain: "One row per entity"
+  business_key: [entity_id]
+  attributes:
+    - name: entity_sk
+      dtype: int32
+      description: "Surrogate key"
+    - name: entity_id
+      dtype: string
+```
 
-## Multi-Channel Marketing Analytics
-
-The platform tracks marketing performance across **6 channels**, unifying spend, engagement, and attribution data into a single reporting layer:
-
-| Channel | Source | Key Metrics |
-|---------|--------|-------------|
-| **Meta Ads** | Meta Marketing API | Spend, impressions, reach, CPM, CTR |
-| **Google Ads** | Google Ads API | Spend, clicks, conversions, CPC, ROAS |
-| **TikTok Ads** | TikTok Marketing API | Spend, video views, engagement rate |
-| **GA4 Sessions** | Google Analytics 4 | Sessions, bounce rate, conversions, revenue |
-| **Email/CRM** | Klaviyo / Mailchimp | Sends, opens, clicks, deliverability |
-| **Influencer** | Manual / Partnership | Posts, reach, engagement, cost, ROI |
-
-The ADL layer produces **cross-channel BI models** including:
-- **`fact_marketing_roas`** — Return on Ad Spend by brand × channel × period
-- **`fact_funnel_metrics`** — Full-funnel analysis: impressions → clicks → sessions → cart → purchase
-- **`fact_marketing_spend_daily`** — Daily spend with 7-day and 28-day rolling averages
-- **`fact_marketing_summary`** — Executive summary across all channels
+The `odl_dim_builder` DAG will automatically detect the new entry and create the corresponding Delta table on Silver S3.
 
 ---
 
-## Airflow Orchestration
+## Airflow DAGs
 
-The entire pipeline is orchestrated by **Apache Airflow** running on a self-managed EC2 instance with automatic start/stop scheduling to minimise costs:
+**18 DAGs** running on Airflow 3.2.1 with CeleryExecutor:
+
+| DAG | Schedule | Category | Purpose |
+|-----|----------|----------|---------|
+| `rdl_weather_ingestion` | `0 8 * * *` | RDL | Open-Meteo → 8 NW grid points hourly weather |
+| `rdl_wind_ingestion` | `0 8 30 * * *` | RDL | Open-Meteo → Multi-height wind data |
+| `nw_bird_ingestion` | `0 9 * * *` | RDL | eBird + NW Birding → Bird sightings |
+| `rdl_airports_ingestion` | `0 6 * * 1` | RDL | OurAirports CSV → Global airport data |
+| `rdl_postcodes_ingestion` | `0 7 * * 1` | RDL | postcodes.io → Full UK postcode register |
+| `rdl_companies_enhanced` | `0 10 * * *` | RDL | Companies House API → NW company register |
+| `rdl_landscapes_ingestion` | `0 6 1 * *` | RDL | UK landscapes + habitats |
+| `private_jet_ingestion` | `0 * * * *` | RDL | OpenSky → NW airspace ADS-B positions |
+| `odl_dim_builder` | Asset-triggered | ODL | YAML-driven dimension table builder |
+| `odl_fact_builder` | Asset-triggered | ODL | YAML-driven fact table builder |
+| `odl_mapping_builder` | Asset-triggered | ODL | YAML-driven mapping table builder |
+| `companies_house_upload` | Manual | Utility | Bulk Companies House CSV upload |
+| `drive_sync_dag` | `0 2 * * *` | Utility | Google Drive file sync |
+| `budget_monitor_dag` | `0 9 * * 1` | Ops | AWS Cost Explorer monitoring |
+| `invoice_engine` | Manual | Business | Invoice generation pipeline |
+| `receipt_archive_dag` | `0 3 * * *` | Ops | Receipt archival to S3 |
+
+> **Asset-triggered** DAGs use Airflow's Asset-based scheduling — they automatically run when upstream RDL DAGs publish new data.
+
+---
+
+## Infrastructure
+
+### Lightsail + Docker Compose
+
+The entire platform runs on a single **AWS Lightsail** instance via Docker Compose:
 
 ```mermaid
-flowchart LR
-    subgraph SCHEDULE["Auto Schedule"]
-        START["⏰ EC2 Start\n1:00 AM UTC"]
-        STOP["⏸️ EC2 Stop\n4:00 AM UTC"]
+flowchart TB
+    subgraph LIGHTSAIL["AWS Lightsail — bellosdata-platform"]
+        subgraph DOCKER["Docker Compose"]
+            PG["PostgreSQL 16\n(Airflow metadata)"]
+            RD["Redis 7.2\n(Celery broker)"]
+            API["Airflow API Server\n:8081"]
+            SCH["Airflow Scheduler"]
+            WRK["Airflow Worker"]
+            TRG["Airflow Triggerer"]
+            DAG["DAG Processor"]
+            UC["Unity Catalog\n:8070 API / :3000 UI"]
+        end
     end
 
-    subgraph PIPELINE["Airflow DAGs"]
-        D1["01 — Invoke\n9 Lambdas"]
-        D2["01b — COPY\nS3 → Redshift"]
-        D3["02 — dbt run\nRDL Layer"]
-        D4["03 — dbt run\nODL Layer"]
-        D5["04 — dbt run\nADL Layer"]
-    end
+    PG --- API
+    RD --- WRK
+    API --- SCH
+    SCH --- WRK
+    SCH --- DAG
+    SCH --- TRG
 
-    START --> D1
-    D1 --> D2
-    D2 --> D3
-    D3 --> D4
-    D4 --> D5
-    D5 --> STOP
-
-    style SCHEDULE fill:#FF9900,color:#fff
-    style PIPELINE fill:#017CEE,color:#fff
+    style LIGHTSAIL fill:#FF9900,color:#fff
+    style DOCKER fill:#2496ED,color:#fff
 ```
 
 | Component | Details |
 |-----------|---------|
-| **Instance** | EC2 `t3.medium`, Amazon Linux 2023, 20 GB gp3 |
-| **Runtime** | 3 hours/day (1:00 AM – 4:00 AM UTC) |
-| **Auto start/stop** | 2 Lambda functions triggered by EventBridge cron rules |
-| **DAG sync** | Pulls latest DAGs from GitHub on every boot via systemd |
-| **IAM permissions** | Lambda invoke, Redshift Data API, S3 read access |
+| **Instance** | Lightsail `medium_3_0` — 4 GB RAM, 2 vCPU, 80 GB SSD |
+| **OS** | Amazon Linux 2023 |
+| **Static IP** | Elastic IP attached for persistent access |
+| **Ports** | 8081 (Airflow UI), 8070 (Unity Catalog API), 3000 (Unity Catalog UI) |
+| **Docker services** | 8 containers: PostgreSQL, Redis, API Server, Scheduler, Worker, Triggerer, DAG Processor, Unity Catalog |
+
+### Terraform Resources
+
+| Resource | Description |
+|----------|-------------|
+| `aws_lightsail_instance` | Data platform instance with Docker bootstrap |
+| `aws_lightsail_static_ip` | Persistent IP for Airflow + Unity Catalog access |
+| `aws_ecr_repository` | Container registry for pipeline images |
+| `aws_ecs_cluster` + `task_definition` | Fargate-ready for future container workloads |
+| `aws_apigatewayv2_api` | HTTP API Gateway for serverless Lambda API |
+| `aws_lambda_function` | `ledger-cloud-api` — always-on serverless endpoint |
 
 ---
 
-## Terraform Infrastructure
+## Related Repositories
 
-All AWS resources are declaratively managed via Terraform with remote state stored in S3:
-
-| Resource | Terraform File | Description |
-|----------|---------------|-------------|
-| AWS Provider & S3 Backend | `main.tf` | Provider config, remote state |
-| IAM Roles | `iam.tf` | `HNBDataGeneratorRole` with Lambda & S3 permissions |
-| 9 Lambda Functions | `lambdas.tf` | Micro-service data generators using `for_each` |
-| Airflow EC2 Instance | `ec2.tf` | Instance, security group, IAM role, bootstrap script |
-| EC2 Auto Scheduler | `ec2_scheduler.tf` | Start/stop Lambdas + EventBridge cron rules |
-| S3 Buckets | `s3.tf` | Data lake with versioning & lifecycle policies (Glacier @ 90d) |
-| Redshift Serverless | `redshift.tf` | Auto-scaling warehouse (auto-pauses when idle) |
-| Variables | `variables.tf` | Input variables |
-| Outputs | `outputs.tf` | Resource ARNs, Airflow URL, SSH key |
-
----
-
-## S3 Data Lake Structure
-
-```
-s3://hnb-dns-rdl-staging/
-├── hnb/hnb_commerce/
-│   ├── customers/history/ingest_date=2026-05-09/customers.jsonl.gz
-│   ├── products/history/ingest_date=2026-05-09/products.jsonl.gz
-│   ├── orders/history/ingest_date=2026-05-09/orders.jsonl.gz
-│   └── order_items/history/ingest_date=2026-05-09/order_items.jsonl.gz
-├── prettylittlething/salesforce_commerce/...
-├── nastygal/shopify/...
-├── karen_millen/magento/...
-├── coast/magento/...
-├── debenhams/oracle_commerce/...
-└── marketing/
-    ├── meta_ads/history/ingest_date=2026-05-09/meta_ads.jsonl.gz
-    ├── google_ads/history/...
-    ├── tiktok_ads/history/...
-    ├── ga4_sessions/history/...
-    ├── email_campaigns/history/...
-    └── influencers/history/...
-```
-
-**Path pattern:** `{brand}/{source}/{dataset}/history/ingest_date={yyyy-mm-dd}/{dataset}.jsonl.gz`
-
----
-
-## CI/CD Pipeline
-
-Every push to `main` triggers an automated deployment via GitHub Actions:
-
-```mermaid
-flowchart LR
-    A["Push to main"] --> B["Build Lambda ZIPs"]
-    B --> C["terraform init"]
-    C --> D["terraform apply"]
-    D --> E["✅ Infrastructure Updated"]
-
-    style A fill:#2088FF,color:#fff
-    style E fill:#28a745,color:#fff
-```
-
-| Workflow | Trigger | Purpose |
-|----------|---------|---------|
-| `deploy_lambdas.yml` | Push to `main` | Build ZIPs → Terraform init → apply |
-| `pr_title_checker.yml` | Pull request | Enforces `DATA-X/description` branch naming convention |
-| `airflow_demo.yml` | Manual / PR | Airflow demo workflow |
-
-Branch protection rules enforce that **all changes must go through a Pull Request** — no direct pushes to `main` are permitted.
-
----
-
-## Quick Start
-
-```bash
-# Clone
-git clone https://github.com/TimiOlayinka/hnb-data-pipeline.git
-cd hnb-data-pipeline
-
-# Build Lambda packages
-python hnb/scripts/build_zips.py
-
-# Deploy infrastructure (requires AWS credentials)
-cd hnb/terraform
-terraform init
-terraform plan
-terraform apply
-
-# Run dbt transformations
-cd ../dbt && dbt deps && dbt run && dbt test
-```
+| Repository | Description |
+|-----------|-------------|
+| **[boohoo-data-pipeline](https://github.com/TimiOlayinka/boohoo-data-pipeline)** | Multi-brand e-commerce data warehouse — EventBridge → EC2 Airflow → Lambda → S3 → Redshift Serverless → dbt |
 
 ---
 
@@ -409,12 +356,41 @@ cd ../dbt && dbt deps && dbt run && dbt test
 
 | Service | Monthly | Notes |
 |---------|---------|-------|
-| S3 | ~$0.01 | < 50MB JSONL.GZ |
-| Lambda (11 functions) | $0.00 | ~330 invocations/month (Free Tier: 1M) |
-| EventBridge | $0.00 | Scheduled rules are free |
-| Redshift Serverless | ~$0.50–2.00 | Auto-pauses when idle |
-| EC2 (Airflow) | ~$3.50 | t3.medium, 3 hrs/day only |
-| **Total** | **~$4–6/month** | |
+| Lightsail | $24.00 | Always-on 4 GB instance |
+| S3 (Bronze + Silver + Gold) | ~$0.05 | < 500 MB Delta Lake tables |
+| Lambda (API) | $0.00 | Free Tier |
+| API Gateway | $0.00 | Free Tier |
+| ECR | $0.00 | Free Tier storage |
+| **Total** | **~$24/month** | |
+
+---
+
+## Quick Start
+
+```bash
+# Clone
+git clone https://github.com/TimiOlayinka/boohoo-data-pipeline.git
+cd aws-data-portfolio
+
+# Create .env (AWS credentials for S3 access)
+cat > airflow/.env <<EOF
+AWS_ACCESS_KEY_ID=your_key
+AWS_SECRET_ACCESS_KEY=your_secret
+AWS_DEFAULT_REGION=eu-west-2
+EOF
+
+# Start the platform locally
+cd airflow
+docker compose up -d
+
+# Access services
+# Airflow UI:        http://localhost:8081
+# Unity Catalog UI:  http://localhost:3000
+# Unity Catalog API: http://localhost:8070
+
+# Deploy to cloud (Lightsail)
+cd .. && pwsh deploy-platform.ps1
+```
 
 ---
 

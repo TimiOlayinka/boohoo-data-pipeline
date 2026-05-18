@@ -1,0 +1,17 @@
+duplicate_tests:
+- name: no_duplicate_order_id
+  description: Each (order_id, ingest_date) combination should be unique
+  enabled: true
+  schedule: daily
+  field:
+  - order_id
+  - ingest_date
+  severity: error
+gap_tests:
+- name: no_missing_ingest_date
+  description: No gaps in ingest_date coverage
+  enabled: true
+  schedule: daily
+  field:
+  - ingest_date
+  severity: warning

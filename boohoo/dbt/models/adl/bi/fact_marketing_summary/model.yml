@@ -1,0 +1,33 @@
+model:
+  name: fact_marketing_summary
+  domain: bi
+  schema: bi
+  layer: adl
+owners:
+  workstream: boohoo-data-engineering
+  analytics_owner: data-team@boohoo.com
+  business_owner: bi-team@boohoo.com
+  technical_owner: data-team@boohoo.com
+service:
+  sla: Daily by 07:00 Europe/London
+  refresh_cadence: daily
+  criticality: high
+description:
+  short: Executive summary — the "wow" table for client presentations
+  business_purpose: Executive summary — the "wow" table for client presentations
+grain: One row per (brand)
+depends_on_products:
+- fact_marketing_spend_daily
+- fact_ga4_sessions
+- fact_email_engagement
+documentation:
+  main: ./README.md
+  runbook: ./runbook.md
+classification:
+  certified_for_reporting: true
+  contains_pii: false
+  confidentiality: internal
+tags:
+- adl
+- bi
+- marketing
